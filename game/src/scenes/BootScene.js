@@ -134,6 +134,44 @@ export default class BootScene extends Phaser.Scene {
     this.load.image('building-house3', '/assets/buildings/House3.png');
     this.load.image('building-tower', '/assets/buildings/Tower.png');
     this.load.image('building-castle', '/assets/buildings/Castle.png');
+    
+    // Load Decorations - Trees (sprite sheets with 8 frames each)
+    this.load.spritesheet('tree1', '/assets/decorations/Tree1.png', {
+      frameWidth: 192,
+      frameHeight: 256
+    });
+    this.load.spritesheet('tree2', '/assets/decorations/Tree2.png', {
+      frameWidth: 192,
+      frameHeight: 256
+    });
+    this.load.spritesheet('tree3', '/assets/decorations/Tree3.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    this.load.spritesheet('tree4', '/assets/decorations/Tree4.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    // Load Decorations - Bushes (sprite sheets with 8 frames each)
+    this.load.spritesheet('bush1', '/assets/decorations/Bushe1.png', {
+      frameWidth: 128,
+      frameHeight: 128
+    });
+    this.load.spritesheet('bush2', '/assets/decorations/Bushe2.png', {
+      frameWidth: 128,
+      frameHeight: 128
+    });
+    this.load.spritesheet('bush3', '/assets/decorations/Bushe3.png', {
+      frameWidth: 128,
+      frameHeight: 128
+    });
+    
+    // Load Decorations - Rocks (static images)
+    this.load.image('rock1', '/assets/decorations/Rock1.png');
+    this.load.image('rock2', '/assets/decorations/Rock2.png');
+    this.load.image('rock3', '/assets/decorations/Rock3.png');
+    this.load.image('rock4', '/assets/decorations/Rock4.png');
   }
 
   create() {

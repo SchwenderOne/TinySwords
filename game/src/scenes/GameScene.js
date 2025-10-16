@@ -30,6 +30,9 @@ export default class GameScene extends Phaser.Scene {
 
     // Place buildings on the island
     this.createBuildings();
+    
+    // Place decorations on the island
+    this.createDecorations();
 
     // Player spawn point (center of green island)
     // Map is 6496x6640, island is in upper-left area
@@ -123,6 +126,112 @@ export default class GameScene extends Phaser.Scene {
     house4.setDepth(1);
     house4.setOrigin(0.5, 1);
     this.buildings.push(house4);
+  }
+
+  createDecorations() {
+    // Island bounds: approximately x: 1500-3150, y: 1470-2610
+    // Store decorations for depth sorting
+    this.decorations = [];
+    
+    // Trees - Around the perimeter and scattered
+    // Left side trees
+    const tree1 = this.add.sprite(1600, 1750, 'tree1', 0);
+    tree1.setOrigin(0.5, 1);
+    tree1.setDepth(1);
+    this.decorations.push(tree1);
+    
+    const tree2 = this.add.sprite(1550, 2200, 'tree2', 1);
+    tree2.setOrigin(0.5, 1);
+    tree2.setDepth(1);
+    this.decorations.push(tree2);
+    
+    const tree3 = this.add.sprite(1700, 2500, 'tree1', 2);
+    tree3.setOrigin(0.5, 1);
+    tree3.setDepth(1);
+    this.decorations.push(tree3);
+    
+    // Right side trees
+    const tree4 = this.add.sprite(3000, 1750, 'tree2', 3);
+    tree4.setOrigin(0.5, 1);
+    tree4.setDepth(1);
+    this.decorations.push(tree4);
+    
+    const tree5 = this.add.sprite(3050, 2200, 'tree1', 4);
+    tree5.setOrigin(0.5, 1);
+    tree5.setDepth(1);
+    this.decorations.push(tree5);
+    
+    const tree6 = this.add.sprite(2900, 2500, 'tree2', 5);
+    tree6.setOrigin(0.5, 1);
+    tree6.setDepth(1);
+    this.decorations.push(tree6);
+    
+    // Smaller trees (tree3/tree4) scattered
+    const tree7 = this.add.sprite(2000, 1600, 'tree3', 0);
+    tree7.setOrigin(0.5, 1);
+    tree7.setDepth(1);
+    this.decorations.push(tree7);
+    
+    const tree8 = this.add.sprite(2600, 1600, 'tree4', 1);
+    tree8.setOrigin(0.5, 1);
+    tree8.setDepth(1);
+    this.decorations.push(tree8);
+    
+    // Bushes - Ground level decorations scattered around
+    const bush1 = this.add.sprite(1900, 2100, 'bush1', 0);
+    bush1.setOrigin(0.5, 1);
+    bush1.setDepth(1);
+    this.decorations.push(bush1);
+    
+    const bush2 = this.add.sprite(2200, 2350, 'bush2', 1);
+    bush2.setOrigin(0.5, 1);
+    bush2.setDepth(1);
+    this.decorations.push(bush2);
+    
+    const bush3 = this.add.sprite(2700, 2100, 'bush3', 2);
+    bush3.setOrigin(0.5, 1);
+    bush3.setDepth(1);
+    this.decorations.push(bush3);
+    
+    const bush4 = this.add.sprite(2350, 1850, 'bush1', 3);
+    bush4.setOrigin(0.5, 1);
+    bush4.setDepth(1);
+    this.decorations.push(bush4);
+    
+    const bush5 = this.add.sprite(1850, 2350, 'bush2', 4);
+    bush5.setOrigin(0.5, 1);
+    bush5.setDepth(1);
+    this.decorations.push(bush5);
+    
+    const bush6 = this.add.sprite(2750, 2350, 'bush3', 5);
+    bush6.setOrigin(0.5, 1);
+    bush6.setDepth(1);
+    this.decorations.push(bush6);
+    
+    // Rocks - Small detail elements
+    const rock1 = this.add.image(1700, 1950, 'rock1');
+    rock1.setOrigin(0.5, 1);
+    rock1.setDepth(0);
+    
+    const rock2 = this.add.image(2450, 2150, 'rock2');
+    rock2.setOrigin(0.5, 1);
+    rock2.setDepth(0);
+    
+    const rock3 = this.add.image(1950, 2250, 'rock3');
+    rock3.setOrigin(0.5, 1);
+    rock3.setDepth(0);
+    
+    const rock4 = this.add.image(2650, 1950, 'rock4');
+    rock4.setOrigin(0.5, 1);
+    rock4.setDepth(0);
+    
+    const rock5 = this.add.image(1600, 2450, 'rock1');
+    rock5.setOrigin(0.5, 1);
+    rock5.setDepth(0);
+    
+    const rock6 = this.add.image(2950, 2300, 'rock2');
+    rock6.setOrigin(0.5, 1);
+    rock6.setDepth(0);
   }
 
   spawnEnemy(type, x, y) {
@@ -311,6 +420,16 @@ export default class GameScene extends Phaser.Scene {
         building.setDepth(3); // In front
       } else {
         building.setDepth(1); // Behind
+      }
+    });
+    
+    // Update decoration depth sorting based on Y position
+    this.decorations.forEach(decoration => {
+      // Decorations in front of characters if character Y < decoration Y
+      if (activeChar.y < decoration.y) {
+        decoration.setDepth(3); // In front
+      } else {
+        decoration.setDepth(1); // Behind
       }
     });
 
