@@ -104,7 +104,7 @@ export default class GameScene extends Phaser.Scene {
     castle.setDepth(1);
     castle.setOrigin(0.5, 1); // Anchor at bottom center
     castle.body.setSize(castle.width * 0.6, castle.height * 0.3); // Collision only at base
-    castle.body.setOffset(-castle.width * 0.3, castle.height * 0.7);
+    castle.body.setOffset(castle.width * 0.2, castle.height * 0.7); // Center the collision box
     this.buildings.push(castle);
     this.buildingsGroup.add(castle);
     
@@ -113,7 +113,7 @@ export default class GameScene extends Phaser.Scene {
     tower1.setDepth(1);
     tower1.setOrigin(0.5, 1);
     tower1.body.setSize(tower1.width * 0.5, tower1.height * 0.3);
-    tower1.body.setOffset(-tower1.width * 0.25, tower1.height * 0.7);
+    tower1.body.setOffset(tower1.width * 0.25, tower1.height * 0.7);
     this.buildings.push(tower1);
     this.buildingsGroup.add(tower1);
     
@@ -122,7 +122,7 @@ export default class GameScene extends Phaser.Scene {
     tower2.setDepth(1);
     tower2.setOrigin(0.5, 1);
     tower2.body.setSize(tower2.width * 0.5, tower2.height * 0.3);
-    tower2.body.setOffset(-tower2.width * 0.25, tower2.height * 0.7);
+    tower2.body.setOffset(tower2.width * 0.25, tower2.height * 0.7);
     this.buildings.push(tower2);
     this.buildingsGroup.add(tower2);
     
@@ -131,7 +131,7 @@ export default class GameScene extends Phaser.Scene {
     house1.setDepth(1);
     house1.setOrigin(0.5, 1);
     house1.body.setSize(house1.width * 0.6, house1.height * 0.3);
-    house1.body.setOffset(-house1.width * 0.3, house1.height * 0.7);
+    house1.body.setOffset(house1.width * 0.2, house1.height * 0.7);
     this.buildings.push(house1);
     this.buildingsGroup.add(house1);
     
@@ -140,7 +140,7 @@ export default class GameScene extends Phaser.Scene {
     house2.setDepth(1);
     house2.setOrigin(0.5, 1);
     house2.body.setSize(house2.width * 0.6, house2.height * 0.3);
-    house2.body.setOffset(-house2.width * 0.3, house2.height * 0.7);
+    house2.body.setOffset(house2.width * 0.2, house2.height * 0.7);
     this.buildings.push(house2);
     this.buildingsGroup.add(house2);
     
@@ -149,7 +149,7 @@ export default class GameScene extends Phaser.Scene {
     house3.setDepth(1);
     house3.setOrigin(0.5, 1);
     house3.body.setSize(house3.width * 0.6, house3.height * 0.3);
-    house3.body.setOffset(-house3.width * 0.3, house3.height * 0.7);
+    house3.body.setOffset(house3.width * 0.2, house3.height * 0.7);
     this.buildings.push(house3);
     this.buildingsGroup.add(house3);
     
@@ -158,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
     house4.setDepth(1);
     house4.setOrigin(0.5, 1);
     house4.body.setSize(house4.width * 0.6, house4.height * 0.3);
-    house4.body.setOffset(-house4.width * 0.3, house4.height * 0.7);
+    house4.body.setOffset(house4.width * 0.2, house4.height * 0.7);
     this.buildings.push(house4);
     this.buildingsGroup.add(house4);
   }
@@ -176,7 +176,7 @@ export default class GameScene extends Phaser.Scene {
       tree.setDepth(1);
       // Collision only at the trunk (small area at bottom)
       tree.body.setSize(tree.width * 0.3, tree.height * 0.15);
-      tree.body.setOffset(-tree.width * 0.15, tree.height * 0.85);
+      tree.body.setOffset(tree.width * 0.35, tree.height * 0.85);
       this.decorations.push(tree);
       this.decorationsGroup.add(tree);
       return tree;
@@ -189,7 +189,7 @@ export default class GameScene extends Phaser.Scene {
       bush.setDepth(1);
       // Bushes have slightly larger collision
       bush.body.setSize(bush.width * 0.5, bush.height * 0.3);
-      bush.body.setOffset(-bush.width * 0.25, bush.height * 0.7);
+      bush.body.setOffset(bush.width * 0.25, bush.height * 0.7);
       this.decorations.push(bush);
       this.decorationsGroup.add(bush);
       return bush;
