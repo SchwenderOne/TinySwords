@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import FloatingText from '../utils/FloatingText.js';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, collisionMap) {
@@ -15,11 +16,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.health = 100;
     this.maxHealth = 100;
     this.moveSpeed = 200;
+    this.attackDamage = 20;
     this.isAttacking = false;
     this.isGuarding = false;
     this.attackCooldown = 0;
     this.lastAttackType = 'attack1';
     this.facingDirection = 1; // 1 = right, -1 = left
+    
+    // XP and Leveling
+    this.level = 1;
+    this.xp = 0;
+    this.xpToNextLevel = 100; // Level * 100
     
     // Setup physics
     this.setCollideWorldBounds(false); // We handle collision manually
@@ -235,7 +242,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   heal(amount) {
     this.health = Math.min(this.health + amount, this.maxHealth);
-    
+
+    // Floating heal number
+    FloatingText.createHeal(this.scene, this.x, this.y - 50, amount);
+
     // Visual feedback
     this.setTint(0x00ff00);
     this.scene.time.delayedCall(200, () => {
@@ -249,9 +259,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.isGuarding) {
       amount *= 0.5; // 50% damage reduction when guarding
     }
-    
+
     this.health -= amount;
-    
+
+    // Floating damage number
+    FloatingText.createDamage(this.scene, this.x, this.y - 50, amount);
+
     // Visual feedback
     this.setTint(0xff0000);
     this.scene.time.delayedCall(100, () => {
@@ -260,10 +273,46 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.clearTint();
       }
     });
-    
+
     if (this.health <= 0) {
       this.die();
     }
+  }
+
+  gainXP(amount) {
+    this.xp += amount;
+    
+    // Show XP gain
+    FloatingText.createXP(this.scene, this.x, this.y - 70, amount);
+    
+    // Check for level up
+    while (this.xp >= this.xpToNextLevel) {
+      this.levelUp();
+    }
+  }
+  
+  levelUp() {
+    this.level++;
+    this.xp -= this.xpToNextLevel;
+    this.xpToNextLevel = this.level * 100;
+    
+    // Stat increases
+    this.maxHealth += 20;
+    this.health = this.maxHealth; // Heal to full on level up
+    this.attackDamage += 5;
+    
+    // Visual feedback
+    FloatingText.createLevelUp(this.scene, this.x, this.y - 90, this.level);
+    
+    // Particle effect
+    this.scene.add.particles(this.x, this.y, 'shadow', {
+      speed: { min: 100, max: 200 },
+      scale: { start: 0.5, end: 0 },
+      blendMode: 'ADD',
+      lifespan: 500,
+      quantity: 20,
+      tint: 0xffd700
+    });
   }
 
   die() {

@@ -3,12 +3,19 @@ import CollisionMap from '../utils/CollisionMap.js';
 import Player from '../entities/Player.js';
 import Monk from '../entities/Monk.js';
 import Enemy from '../entities/Enemy.js';
+import HealthPotion from '../entities/HealthPotion.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
     this.currentCharacter = 'warrior'; // 'warrior' or 'monk'
     this.menuOpen = false;
+    
+    // Wave system
+    this.currentWave = 1;
+    this.maxWaves = 10;
+    this.waveInProgress = false;
+    this.betweenWaves = false;
   }
 
   create() {
@@ -52,15 +59,11 @@ export default class GameScene extends Phaser.Scene {
     // Create enemies group
     this.enemies = this.physics.add.group();
     
-    // Spawn Red Warriors (2-3 patrolling the island)
-    // Island bounds scaled: x: 1500-3150, y: 1470-2610
-    this.spawnEnemy('warrior', 2880, 2040);  // Right side
-    this.spawnEnemy('warrior', 1740, 2280);  // Left-bottom
-    this.spawnEnemy('warrior', 2310, 1680);  // Top-center
+    // Create health potions group
+    this.healthPotions = [];
     
-    // Spawn Red Archers (1-2 stationary)
-    this.spawnEnemy('archer', 2820, 1800);   // Right-top
-    this.spawnEnemy('archer', 1800, 1920);   // Left-center
+    // Start first wave
+    this.startWave();
     
     // Add collision between player and enemies
     this.physics.add.collider(this.player, this.enemies);
@@ -239,6 +242,11 @@ export default class GameScene extends Phaser.Scene {
     this.enemies.add(enemy);
   }
 
+  spawnHealthPotion(x, y) {
+    const potion = new HealthPotion(this, x, y);
+    this.healthPotions.push(potion);
+  }
+
   createUI() {
     // Controls text
     const controlsText = this.add.text(10, 10, 
@@ -272,6 +280,127 @@ export default class GameScene extends Phaser.Scene {
     });
     this.characterText.setScrollFactor(0);
     this.characterText.setDepth(100);
+    
+    // Wave counter (top center)
+    const width = this.cameras.main.width;
+    this.waveText = this.add.text(width / 2, 20, '', {
+      font: 'bold 24px Arial',
+      fill: '#ffffff',
+      backgroundColor: '#000000aa',
+      padding: { x: 20, y: 10 }
+    });
+    this.waveText.setOrigin(0.5, 0);
+    this.waveText.setScrollFactor(0);
+    this.waveText.setDepth(100);
+    
+    // XP Bar (bottom of screen)
+    this.xpBarBg = this.add.rectangle(10, this.cameras.main.height - 50, 300, 30, 0x000000);
+    this.xpBarBg.setOrigin(0, 0);
+    this.xpBarBg.setScrollFactor(0);
+    this.xpBarBg.setDepth(100);
+    
+    this.xpBar = this.add.rectangle(10, this.cameras.main.height - 50, 300, 30, 0xffff00);
+    this.xpBar.setOrigin(0, 0);
+    this.xpBar.setScrollFactor(0);
+    this.xpBar.setDepth(101);
+    
+    this.xpText = this.add.text(160, this.cameras.main.height - 35, '', {
+      font: 'bold 16px Arial',
+      fill: '#000000'
+    });
+    this.xpText.setOrigin(0.5);
+    this.xpText.setScrollFactor(0);
+    this.xpText.setDepth(102);
+    
+    // Level text (left of XP bar)
+    this.levelText = this.add.text(10, this.cameras.main.height - 80, '', {
+      font: 'bold 18px Arial',
+      fill: '#ffffff',
+      backgroundColor: '#000000aa',
+      padding: { x: 10, y: 5 }
+    });
+    this.levelText.setScrollFactor(0);
+    this.levelText.setDepth(100);
+  }
+
+  startWave() {
+    this.waveInProgress = true;
+    this.betweenWaves = false;
+    
+    // Calculate enemy count and difficulty based on wave
+    const warriorCount = Math.min(2 + Math.floor(this.currentWave / 2), 6);
+    const archerCount = Math.min(1 + Math.floor(this.currentWave / 3), 4);
+    
+    // Spawn positions around the island
+    const spawnPositions = [
+      { x: 2880, y: 2040 },  // Right side
+      { x: 1740, y: 2280 },  // Left-bottom
+      { x: 2310, y: 1680 },  // Top-center
+      { x: 2820, y: 1800 },  // Right-top
+      { x: 1800, y: 1920 },  // Left-center
+      { x: 2600, y: 2400 },  // Right-bottom
+      { x: 1600, y: 1700 },  // Left-top
+      { x: 2500, y: 1800 },  // Center-top
+    ];
+    
+    // Spawn warriors
+    for (let i = 0; i < warriorCount; i++) {
+      const pos = spawnPositions[i % spawnPositions.length];
+      this.spawnEnemy('warrior', pos.x, pos.y);
+    }
+    
+    // Spawn archers
+    for (let i = 0; i < archerCount; i++) {
+      const pos = spawnPositions[(warriorCount + i) % spawnPositions.length];
+      this.spawnEnemy('archer', pos.x, pos.y);
+    }
+    
+    // Show wave start message
+    this.showWaveMessage(`Wave ${this.currentWave} - Fight!`);
+  }
+
+  showWaveMessage(message) {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    const waveMessage = this.add.text(width / 2, height / 2, message, {
+      font: 'bold 48px Arial',
+      fill: '#ffff00',
+      stroke: '#000000',
+      strokeThickness: 6
+    });
+    waveMessage.setOrigin(0.5);
+    waveMessage.setScrollFactor(0);
+    waveMessage.setDepth(200);
+    
+    // Fade out after 2 seconds
+    this.tweens.add({
+      targets: waveMessage,
+      alpha: 0,
+      duration: 1000,
+      delay: 1000,
+      onComplete: () => {
+        waveMessage.destroy();
+      }
+    });
+  }
+
+  nextWave() {
+    this.currentWave++;
+    
+    if (this.currentWave > this.maxWaves) {
+      this.victory();
+    } else {
+      this.betweenWaves = true;
+      this.showWaveMessage(`Wave ${this.currentWave} incoming in 5 seconds...`);
+      
+      // 5 second rest period
+      this.time.delayedCall(5000, () => {
+        if (!this.gameOverShown && !this.victoryShown) {
+          this.startWave();
+        }
+      });
+    }
   }
 
   toggleCharacterMenu() {
@@ -404,6 +533,15 @@ export default class GameScene extends Phaser.Scene {
       // Update character indicator
       const charName = this.currentCharacter === 'warrior' ? 'Warrior' : 'Monk';
       this.characterText.setText(`Character: ${charName}`);
+      
+      // Update wave counter
+      this.waveText.setText(`Wave ${this.currentWave}/${this.maxWaves}`);
+      
+      // Update XP bar
+      const xpPercent = activeChar.xp / activeChar.xpToNextLevel;
+      this.xpBar.setScale(xpPercent, 1);
+      this.xpText.setText(`${Math.round(activeChar.xp)}/${activeChar.xpToNextLevel} XP`);
+      this.levelText.setText(`Level ${activeChar.level}`);
     }
     
     // Update enemies (they target active character)
@@ -432,16 +570,26 @@ export default class GameScene extends Phaser.Scene {
         decoration.setDepth(1); // Behind
       }
     });
+    
+    // Update health potions
+    this.healthPotions = this.healthPotions.filter(potion => {
+      if (potion.active) {
+        potion.update(activeChar);
+        return true;
+      }
+      return false;
+    });
 
     // Check game over (both characters dead)
     if (!this.player.active && !this.monk.active) {
       this.gameOver();
     }
 
-    // Check victory (all enemies defeated)
+    // Check wave completion (all enemies defeated)
     const activeEnemies = this.enemies.getChildren().filter(e => e.active);
-    if (activeEnemies.length === 0 && !this.victoryShown) {
-      this.victory();
+    if (activeEnemies.length === 0 && this.waveInProgress && !this.betweenWaves && !this.victoryShown && !this.gameOverShown) {
+      this.waveInProgress = false;
+      this.nextWave();
     }
   }
 

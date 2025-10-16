@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import FloatingText from '../utils/FloatingText.js';
 
 export default class Monk extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, collisionMap) {
@@ -15,9 +16,17 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
     this.health = 80; // Less health than warrior
     this.maxHealth = 80;
     this.moveSpeed = 175; // Slightly slower than warrior
+    this.attackDamage = 0; // Monks don't attack
     this.isHealing = false;
     this.healCooldown = 0;
+    this.healAmount = 30;
+    this.healRange = 160;
     this.facingDirection = 1; // 1 = right, -1 = left
+    
+    // XP and Leveling (shared with Warrior through scene)
+    this.level = 1;
+    this.xp = 0;
+    this.xpToNextLevel = 100;
     
     // Heal properties
     this.healRadius = 160;
@@ -218,7 +227,10 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
 
   heal(amount) {
     this.health = Math.min(this.health + amount, this.maxHealth);
-    
+
+    // Floating heal number
+    FloatingText.createHeal(this.scene, this.x, this.y - 50, amount);
+
     // Visual feedback
     this.setTint(0x00ff00);
     this.scene.time.delayedCall(200, () => {
@@ -230,7 +242,10 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
 
   takeDamage(amount) {
     this.health -= amount;
-    
+
+    // Floating damage number
+    FloatingText.createDamage(this.scene, this.x, this.y - 50, amount);
+
     // Visual feedback
     this.setTint(0xff0000);
     this.scene.time.delayedCall(100, () => {
@@ -238,10 +253,46 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
         this.clearTint();
       }
     });
-    
+
     if (this.health <= 0) {
       this.die();
     }
+  }
+
+  gainXP(amount) {
+    this.xp += amount;
+    
+    // Show XP gain
+    FloatingText.createXP(this.scene, this.x, this.y - 70, amount);
+    
+    // Check for level up
+    while (this.xp >= this.xpToNextLevel) {
+      this.levelUp();
+    }
+  }
+  
+  levelUp() {
+    this.level++;
+    this.xp -= this.xpToNextLevel;
+    this.xpToNextLevel = this.level * 100;
+    
+    // Stat increases (Monk gets more HP, less attack)
+    this.maxHealth += 15;
+    this.health = this.maxHealth; // Heal to full on level up
+    this.healAmount += 5; // Increase heal power
+    
+    // Visual feedback
+    FloatingText.createLevelUp(this.scene, this.x, this.y - 90, this.level);
+    
+    // Particle effect
+    this.scene.add.particles(this.x, this.y, 'shadow', {
+      speed: { min: 100, max: 200 },
+      scale: { start: 0.5, end: 0 },
+      blendMode: 'ADD',
+      lifespan: 500,
+      quantity: 20,
+      tint: 0x00ff00 // Green for monk
+    });
   }
 
   die() {

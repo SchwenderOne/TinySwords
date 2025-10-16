@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import FloatingText from '../utils/FloatingText.js';
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, type, collisionMap) {
@@ -359,7 +360,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   takeDamage(amount, knockbackDirection = 1) {
     this.health -= amount;
-    
+
+    // Floating damage number
+    FloatingText.createDamage(this.scene, this.x, this.y - 50, amount);
+
     // Visual feedback
     this.setTint(0xff0000);
     this.scene.time.delayedCall(100, () => {
@@ -368,7 +372,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.clearTint();
       }
     });
-    
+
     // Knockback
     this.body.setVelocity(knockbackDirection * 200, -100);
     this.scene.time.delayedCall(200, () => {
@@ -377,13 +381,25 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.body.setVelocity(0, 0);
       }
     });
-    
+
     if (this.health <= 0) {
       this.die();
     }
   }
 
   die() {
+    // Grant XP to active character
+    const xpAmount = this.type === 'warrior' ? 50 : 30; // Warriors give more XP
+    const activeChar = this.scene.currentCharacter === 'warrior' ? this.scene.player : this.scene.monk;
+    if (activeChar && activeChar.active) {
+      activeChar.gainXP(xpAmount);
+    }
+    
+    // 30% chance to drop health potion
+    if (Math.random() < 0.3 && this.scene.spawnHealthPotion) {
+      this.scene.spawnHealthPotion(this.x, this.y);
+    }
+    
     this.setActive(false);
     this.setVisible(false);
     this.shadow.setVisible(false);
