@@ -127,6 +127,13 @@ export default class BootScene extends Phaser.Scene {
     });
     
     this.load.image('arrow', '/assets/red-archer/Arrow.png');
+    
+    // Load Buildings
+    this.load.image('building-house1', '/assets/buildings/House1.png');
+    this.load.image('building-house2', '/assets/buildings/House2.png');
+    this.load.image('building-house3', '/assets/buildings/House3.png');
+    this.load.image('building-tower', '/assets/buildings/Tower.png');
+    this.load.image('building-castle', '/assets/buildings/Castle.png');
   }
 
   create() {

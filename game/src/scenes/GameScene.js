@@ -27,7 +27,10 @@ export default class GameScene extends Phaser.Scene {
     // Create collision map from the level image
     this.collisionMap = new CollisionMap(this, 'map');
     this.collisionMap.generateFromImage();
-    
+
+    // Place buildings on the island
+    this.createBuildings();
+
     // Player spawn point (center of green island)
     // Map is 6496x6640, island is in upper-left area
     // Island center scaled to actual map size: approximately x: 2310, y: 2040
@@ -72,6 +75,54 @@ export default class GameScene extends Phaser.Scene {
     
     // Display controls text
     this.createUI();
+  }
+
+  createBuildings() {
+    // Island bounds: approximately x: 1500-3150, y: 1470-2610
+    // Store buildings array for depth sorting
+    this.buildings = [];
+    
+    // Castle - Central landmark in the back of the island
+    const castle = this.add.image(2310, 1720, 'building-castle');
+    castle.setDepth(1);
+    castle.setOrigin(0.5, 1); // Anchor at bottom center
+    this.buildings.push(castle);
+    
+    // Tower 1 - Left side defense
+    const tower1 = this.add.image(1850, 2150, 'building-tower');
+    tower1.setDepth(1);
+    tower1.setOrigin(0.5, 1);
+    this.buildings.push(tower1);
+    
+    // Tower 2 - Right side defense
+    const tower2 = this.add.image(2750, 2150, 'building-tower');
+    tower2.setDepth(1);
+    tower2.setOrigin(0.5, 1);
+    this.buildings.push(tower2);
+    
+    // House 1 - Front-facing cottage, left area
+    const house1 = this.add.image(1750, 2450, 'building-house1');
+    house1.setDepth(1);
+    house1.setOrigin(0.5, 1);
+    this.buildings.push(house1);
+    
+    // House 2 - Angled cottage, right area
+    const house2 = this.add.image(2850, 2450, 'building-house2');
+    house2.setDepth(1);
+    house2.setOrigin(0.5, 1);
+    this.buildings.push(house2);
+    
+    // House 3 - Rear-facing house, center-left
+    const house3 = this.add.image(2100, 1950, 'building-house3');
+    house3.setDepth(1);
+    house3.setOrigin(0.5, 1);
+    this.buildings.push(house3);
+    
+    // House 4 - Front-facing cottage, center-right
+    const house4 = this.add.image(2500, 2300, 'building-house1');
+    house4.setDepth(1);
+    house4.setOrigin(0.5, 1);
+    this.buildings.push(house4);
   }
 
   spawnEnemy(type, x, y) {
@@ -252,12 +303,22 @@ export default class GameScene extends Phaser.Scene {
         enemy.update(time, delta, activeChar);
       }
     });
-    
+
+    // Update building depth sorting based on Y position
+    this.buildings.forEach(building => {
+      // Buildings in front of characters if character Y < building Y
+      if (activeChar.y < building.y) {
+        building.setDepth(3); // In front
+      } else {
+        building.setDepth(1); // Behind
+      }
+    });
+
     // Check game over (both characters dead)
     if (!this.player.active && !this.monk.active) {
       this.gameOver();
     }
-    
+
     // Check victory (all enemies defeated)
     const activeEnemies = this.enemies.getChildren().filter(e => e.active);
     if (activeEnemies.length === 0 && !this.victoryShown) {
