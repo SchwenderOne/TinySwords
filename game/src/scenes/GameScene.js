@@ -62,12 +62,22 @@ export default class GameScene extends Phaser.Scene {
     // Create health potions group
     this.healthPotions = [];
     
+    // Add collision between player/monk and static objects
+    this.physics.add.collider(this.player, this.buildingsGroup);
+    this.physics.add.collider(this.player, this.decorationsGroup);
+    this.physics.add.collider(this.monk, this.buildingsGroup);
+    this.physics.add.collider(this.monk, this.decorationsGroup);
+    
     // Start first wave
     this.startWave();
     
     // Add collision between player and enemies
     this.physics.add.collider(this.player, this.enemies);
     this.physics.add.collider(this.monk, this.enemies);
+    
+    // Add collision between enemies and static objects
+    this.physics.add.collider(this.enemies, this.buildingsGroup);
+    this.physics.add.collider(this.enemies, this.decorationsGroup);
     
     // Add ESC key for character menu
     this.input.keyboard.on('keydown-ESC', () => {
@@ -85,133 +95,130 @@ export default class GameScene extends Phaser.Scene {
 
   createBuildings() {
     // Island bounds: approximately x: 1500-3150, y: 1470-2610
-    // Store buildings array for depth sorting
+    // Store buildings array for depth sorting and create physics group
     this.buildings = [];
+    this.buildingsGroup = this.physics.add.staticGroup();
     
     // Castle - Central landmark in the back of the island
-    const castle = this.add.image(2310, 1720, 'building-castle');
+    const castle = this.physics.add.staticImage(2310, 1720, 'building-castle');
     castle.setDepth(1);
     castle.setOrigin(0.5, 1); // Anchor at bottom center
+    castle.body.setSize(castle.width * 0.6, castle.height * 0.3); // Collision only at base
+    castle.body.setOffset(-castle.width * 0.3, castle.height * 0.7);
     this.buildings.push(castle);
+    this.buildingsGroup.add(castle);
     
     // Tower 1 - Left side defense
-    const tower1 = this.add.image(1850, 2150, 'building-tower');
+    const tower1 = this.physics.add.staticImage(1850, 2150, 'building-tower');
     tower1.setDepth(1);
     tower1.setOrigin(0.5, 1);
+    tower1.body.setSize(tower1.width * 0.5, tower1.height * 0.3);
+    tower1.body.setOffset(-tower1.width * 0.25, tower1.height * 0.7);
     this.buildings.push(tower1);
+    this.buildingsGroup.add(tower1);
     
     // Tower 2 - Right side defense
-    const tower2 = this.add.image(2750, 2150, 'building-tower');
+    const tower2 = this.physics.add.staticImage(2750, 2150, 'building-tower');
     tower2.setDepth(1);
     tower2.setOrigin(0.5, 1);
+    tower2.body.setSize(tower2.width * 0.5, tower2.height * 0.3);
+    tower2.body.setOffset(-tower2.width * 0.25, tower2.height * 0.7);
     this.buildings.push(tower2);
+    this.buildingsGroup.add(tower2);
     
     // House 1 - Front-facing cottage, left area
-    const house1 = this.add.image(1750, 2450, 'building-house1');
+    const house1 = this.physics.add.staticImage(1750, 2450, 'building-house1');
     house1.setDepth(1);
     house1.setOrigin(0.5, 1);
+    house1.body.setSize(house1.width * 0.6, house1.height * 0.3);
+    house1.body.setOffset(-house1.width * 0.3, house1.height * 0.7);
     this.buildings.push(house1);
+    this.buildingsGroup.add(house1);
     
     // House 2 - Angled cottage, right area
-    const house2 = this.add.image(2850, 2450, 'building-house2');
+    const house2 = this.physics.add.staticImage(2850, 2450, 'building-house2');
     house2.setDepth(1);
     house2.setOrigin(0.5, 1);
+    house2.body.setSize(house2.width * 0.6, house2.height * 0.3);
+    house2.body.setOffset(-house2.width * 0.3, house2.height * 0.7);
     this.buildings.push(house2);
+    this.buildingsGroup.add(house2);
     
     // House 3 - Rear-facing house, center-left
-    const house3 = this.add.image(2100, 1950, 'building-house3');
+    const house3 = this.physics.add.staticImage(2100, 1950, 'building-house3');
     house3.setDepth(1);
     house3.setOrigin(0.5, 1);
+    house3.body.setSize(house3.width * 0.6, house3.height * 0.3);
+    house3.body.setOffset(-house3.width * 0.3, house3.height * 0.7);
     this.buildings.push(house3);
+    this.buildingsGroup.add(house3);
     
     // House 4 - Front-facing cottage, center-right
-    const house4 = this.add.image(2500, 2300, 'building-house1');
+    const house4 = this.physics.add.staticImage(2500, 2300, 'building-house1');
     house4.setDepth(1);
     house4.setOrigin(0.5, 1);
+    house4.body.setSize(house4.width * 0.6, house4.height * 0.3);
+    house4.body.setOffset(-house4.width * 0.3, house4.height * 0.7);
     this.buildings.push(house4);
+    this.buildingsGroup.add(house4);
   }
 
   createDecorations() {
     // Island bounds: approximately x: 1500-3150, y: 1470-2610
-    // Store decorations for depth sorting
+    // Store decorations for depth sorting and create physics group
     this.decorations = [];
+    this.decorationsGroup = this.physics.add.staticGroup();
+    
+    // Helper function to add a tree with collision
+    const addTree = (x, y, texture, frame) => {
+      const tree = this.physics.add.staticSprite(x, y, texture, frame);
+      tree.setOrigin(0.5, 1);
+      tree.setDepth(1);
+      // Collision only at the trunk (small area at bottom)
+      tree.body.setSize(tree.width * 0.3, tree.height * 0.15);
+      tree.body.setOffset(-tree.width * 0.15, tree.height * 0.85);
+      this.decorations.push(tree);
+      this.decorationsGroup.add(tree);
+      return tree;
+    };
+    
+    // Helper function to add a bush with collision
+    const addBush = (x, y, texture, frame) => {
+      const bush = this.physics.add.staticSprite(x, y, texture, frame);
+      bush.setOrigin(0.5, 1);
+      bush.setDepth(1);
+      // Bushes have slightly larger collision
+      bush.body.setSize(bush.width * 0.5, bush.height * 0.3);
+      bush.body.setOffset(-bush.width * 0.25, bush.height * 0.7);
+      this.decorations.push(bush);
+      this.decorationsGroup.add(bush);
+      return bush;
+    };
     
     // Trees - Around the perimeter and scattered
     // Left side trees
-    const tree1 = this.add.sprite(1600, 1750, 'tree1', 0);
-    tree1.setOrigin(0.5, 1);
-    tree1.setDepth(1);
-    this.decorations.push(tree1);
-    
-    const tree2 = this.add.sprite(1550, 2200, 'tree2', 1);
-    tree2.setOrigin(0.5, 1);
-    tree2.setDepth(1);
-    this.decorations.push(tree2);
-    
-    const tree3 = this.add.sprite(1700, 2500, 'tree1', 2);
-    tree3.setOrigin(0.5, 1);
-    tree3.setDepth(1);
-    this.decorations.push(tree3);
+    addTree(1600, 1750, 'tree1', 0);
+    addTree(1550, 2200, 'tree2', 1);
+    addTree(1700, 2500, 'tree1', 2);
     
     // Right side trees
-    const tree4 = this.add.sprite(3000, 1750, 'tree2', 3);
-    tree4.setOrigin(0.5, 1);
-    tree4.setDepth(1);
-    this.decorations.push(tree4);
-    
-    const tree5 = this.add.sprite(3050, 2200, 'tree1', 4);
-    tree5.setOrigin(0.5, 1);
-    tree5.setDepth(1);
-    this.decorations.push(tree5);
-    
-    const tree6 = this.add.sprite(2900, 2500, 'tree2', 5);
-    tree6.setOrigin(0.5, 1);
-    tree6.setDepth(1);
-    this.decorations.push(tree6);
+    addTree(3000, 1750, 'tree2', 3);
+    addTree(3050, 2200, 'tree1', 4);
+    addTree(2900, 2500, 'tree2', 5);
     
     // Smaller trees (tree3/tree4) scattered
-    const tree7 = this.add.sprite(2000, 1600, 'tree3', 0);
-    tree7.setOrigin(0.5, 1);
-    tree7.setDepth(1);
-    this.decorations.push(tree7);
-    
-    const tree8 = this.add.sprite(2600, 1600, 'tree4', 1);
-    tree8.setOrigin(0.5, 1);
-    tree8.setDepth(1);
-    this.decorations.push(tree8);
+    addTree(2000, 1600, 'tree3', 0);
+    addTree(2600, 1600, 'tree4', 1);
     
     // Bushes - Ground level decorations scattered around
-    const bush1 = this.add.sprite(1900, 2100, 'bush1', 0);
-    bush1.setOrigin(0.5, 1);
-    bush1.setDepth(1);
-    this.decorations.push(bush1);
+    addBush(1900, 2100, 'bush1', 0);
+    addBush(2200, 2350, 'bush2', 1);
+    addBush(2700, 2100, 'bush3', 2);
+    addBush(2350, 1850, 'bush1', 3);
+    addBush(1850, 2350, 'bush2', 4);
+    addBush(2750, 2350, 'bush3', 5);
     
-    const bush2 = this.add.sprite(2200, 2350, 'bush2', 1);
-    bush2.setOrigin(0.5, 1);
-    bush2.setDepth(1);
-    this.decorations.push(bush2);
-    
-    const bush3 = this.add.sprite(2700, 2100, 'bush3', 2);
-    bush3.setOrigin(0.5, 1);
-    bush3.setDepth(1);
-    this.decorations.push(bush3);
-    
-    const bush4 = this.add.sprite(2350, 1850, 'bush1', 3);
-    bush4.setOrigin(0.5, 1);
-    bush4.setDepth(1);
-    this.decorations.push(bush4);
-    
-    const bush5 = this.add.sprite(1850, 2350, 'bush2', 4);
-    bush5.setOrigin(0.5, 1);
-    bush5.setDepth(1);
-    this.decorations.push(bush5);
-    
-    const bush6 = this.add.sprite(2750, 2350, 'bush3', 5);
-    bush6.setOrigin(0.5, 1);
-    bush6.setDepth(1);
-    this.decorations.push(bush6);
-    
-    // Rocks - Small detail elements
+    // Rocks - Small detail elements (no collision)
     const rock1 = this.add.image(1700, 1950, 'rock1');
     rock1.setOrigin(0.5, 1);
     rock1.setDepth(0);
