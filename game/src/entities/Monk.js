@@ -1,53 +1,35 @@
 import Phaser from 'phaser';
-import FloatingText from '../utils/FloatingText.js';
+import BaseCharacter from './BaseCharacter.js';
+import { GameBalance } from '../config/GameBalance.js';
 
-export default class Monk extends Phaser.Physics.Arcade.Sprite {
+export default class Monk extends BaseCharacter {
   constructor(scene, x, y, collisionMap) {
-    super(scene, x, y, 'black-monk-idle');
+    // Use monk stats (temporarily using warrior stats, will add monk config later)
+    const stats = {
+      health: 80,
+      moveSpeed: 175,
+      attackDamage: 0
+    };
     
-    // Add to scene
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
+    // Call BaseCharacter constructor
+    super(scene, x, y, 'black-monk-idle', stats);
     
     // Store collision map reference
     this.collisionMap = collisionMap;
     
-    // Monk stats
-    this.health = 80; // Less health than warrior
-    this.maxHealth = 80;
-    this.moveSpeed = 175; // Slightly slower than warrior
-    this.attackDamage = 0; // Monks don't attack
+    // Monk-specific properties
     this.isHealing = false;
     this.healCooldown = 0;
     this.healAmount = 30;
     this.healRange = 160;
-    this.facingDirection = 1; // 1 = right, -1 = left
-    
-    // XP and Leveling (shared with Warrior through scene)
-    this.level = 1;
-    this.xp = 0;
-    this.xpToNextLevel = 100;
-    
-    // Heal properties
     this.healRadius = 160;
-    this.healAmount = 30;
     
-    // Setup physics
+    // Setup physics (override base offset)
     this.setCollideWorldBounds(false);
-    // Smaller collision box for tighter, more accurate collisions
-    this.body.setSize(60, 80);
-    this.body.setOffset(66, 90);
+    this.body.setOffset(66, 50);
     
     // Create animations
     this.createAnimations();
-    
-    // Add shadow
-    this.shadow = scene.add.image(x, y + 60, 'shadow');
-    this.shadow.setScale(0.3);
-    this.shadow.setAlpha(0.5);
-    this.shadow.setDepth(0);
-    
-    this.setDepth(2);
     
     // Setup controls
     this.keys = scene.input.keyboard.addKeys({
@@ -108,8 +90,8 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(time, delta) {
-    // Update shadow position
-    this.shadow.setPosition(this.x, this.y + 60);
+    // Call base class update (handles shadow, depth sorting)
+    super.update(time, delta);
     
     // Update heal cooldown
     if (this.healCooldown > 0) {
@@ -205,16 +187,8 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
   }
 
   performHeal() {
-    // Heal self
-    this.health = Math.min(this.health + this.healAmount, this.maxHealth);
-    
-    // Visual feedback
-    this.setTint(0x00ff00);
-    this.scene.time.delayedCall(200, () => {
-      if (this.active) {
-        this.clearTint();
-      }
-    });
+    // Heal self using base class method
+    super.heal(this.healAmount);
     
     // Heal nearby allies (player character if they exist)
     if (this.scene.player && this.scene.player !== this) {
@@ -224,95 +198,29 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
       }
     }
   }
-
-  heal(amount) {
-    this.health = Math.min(this.health + amount, this.maxHealth);
-
-    // Floating heal number
-    FloatingText.createHeal(this.scene, this.x, this.y - 50, amount);
-
-    // Visual feedback
-    this.setTint(0x00ff00);
-    this.scene.time.delayedCall(200, () => {
-      if (this.active) {
-        this.clearTint();
-      }
-    });
-  }
-
-  takeDamage(amount) {
-    this.health -= amount;
-
-    // Floating damage number
-    FloatingText.createDamage(this.scene, this.x, this.y - 50, amount);
-
-    // Visual feedback
-    this.setTint(0xff0000);
-    this.scene.time.delayedCall(100, () => {
-      if (this.active) {
-        this.clearTint();
-      }
-    });
-
-    if (this.health <= 0) {
-      this.die();
-    }
-  }
-
-  gainXP(amount) {
-    this.xp += amount;
-    
-    // Show XP gain
-    FloatingText.createXP(this.scene, this.x, this.y - 70, amount);
-    
-    // Check for level up
-    while (this.xp >= this.xpToNextLevel) {
-      this.levelUp();
-    }
-  }
   
+  /**
+   * Override levelUp to add monk-specific stat increases
+   */
   levelUp() {
-    // Cap at level 10
-    if (this.level >= 10) {
-      this.xp = this.xpToNextLevel; // Cap XP at max
-      return;
-    }
+    // Call base class level up
+    super.levelUp();
     
-    this.level++;
-    this.xp -= this.xpToNextLevel;
-    this.xpToNextLevel = this.level * 100;
-    
-    // Stat increases (Monk gets more HP, less attack)
-    this.maxHealth += 15;
-    this.health = this.maxHealth; // Heal to full on level up
+    // Monk-specific stat increases
+    this.maxHealth += 15; // Less HP than warrior
     this.healAmount += 5; // Increase heal power
     
-    // Visual feedback
-    FloatingText.createLevelUp(this.scene, this.x, this.y - 90, this.level);
-    
-    // Particle effect
-    this.scene.add.particles(this.x, this.y, 'shadow', {
-      speed: { min: 100, max: 200 },
-      scale: { start: 0.5, end: 0 },
-      blendMode: 'ADD',
-      lifespan: 500,
-      quantity: 20,
-      tint: 0x00ff00 // Green for monk
-    });
-  }
-
-  die() {
-    this.setActive(false);
-    this.setVisible(false);
-    this.shadow.setVisible(false);
-    this.body.enable = false; // Disable physics body
-  }
-
-  destroy() {
-    if (this.shadow) {
-      this.shadow.destroy();
+    // Override particle color to green for monk
+    if (this.scene && this.scene.add) {
+      this.scene.add.particles(this.x, this.y, 'shadow', {
+        speed: { min: 100, max: 200 },
+        scale: { start: 0.5, end: 0 },
+        blendMode: 'ADD',
+        lifespan: 500,
+        quantity: 20,
+        tint: 0x00ff00 // Green for monk
+      });
     }
-    super.destroy();
   }
 }
 

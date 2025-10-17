@@ -1,20 +1,18 @@
 import Phaser from 'phaser';
 import CollisionMap from '../utils/CollisionMap.js';
 import Player from '../entities/Player.js';
-import Monk from '../entities/Monk.js';
 import Enemy from '../entities/Enemy.js';
 import HealthPotion from '../entities/HealthPotion.js';
 import { UIBars } from '../utils/UIBars.js';
+import { GameBalance } from '../config/GameBalance.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
-    this.currentCharacter = 'warrior'; // 'warrior' or 'monk'
-    this.menuOpen = false;
     
     // Wave system
     this.currentWave = 1;
-    this.maxWaves = 10;
+    this.maxWaves = 5; // Changed from 10 to 5 for survivors-like gameplay
     this.waveInProgress = false;
     this.betweenWaves = false;
   }
@@ -36,6 +34,10 @@ export default class GameScene extends Phaser.Scene {
     this.collisionMap = new CollisionMap(this, 'map');
     this.collisionMap.generateFromImage();
 
+    // Create physics groups for environment collisions
+    this.buildingsGroup = this.physics.add.staticGroup();
+    this.treesGroup = this.physics.add.staticGroup();
+
     // Place buildings on the island
     this.createBuildings();
     
@@ -48,14 +50,8 @@ export default class GameScene extends Phaser.Scene {
     this.spawnX = 2310;
     this.spawnY = 2040;
     
-    // Create initial player (warrior)
+    // Create player (warrior only)
     this.player = new Player(this, this.spawnX, this.spawnY, this.collisionMap);
-    
-    // Create monk (starts inactive)
-    this.monk = new Monk(this, this.spawnX, this.spawnY, this.collisionMap);
-    this.monk.setActive(false);
-    this.monk.setVisible(false);
-    this.monk.shadow.setVisible(false);
     
     // Create enemies group
     this.enemies = this.physics.add.group();
@@ -68,12 +64,12 @@ export default class GameScene extends Phaser.Scene {
     
     // Add collision between player and enemies
     this.physics.add.collider(this.player, this.enemies);
-    this.physics.add.collider(this.monk, this.enemies);
-    
-    // Add ESC key for character menu
-    this.input.keyboard.on('keydown-ESC', () => {
-      this.toggleCharacterMenu();
-    });
+
+    // Add collision between player and environment
+    this.physics.add.collider(this.player, this.buildingsGroup);
+    this.physics.add.collider(this.player, this.treesGroup);
+    this.physics.add.collider(this.enemies, this.buildingsGroup);
+    this.physics.add.collider(this.enemies, this.treesGroup);
     
     // Setup camera
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -88,47 +84,82 @@ export default class GameScene extends Phaser.Scene {
     // Island bounds: approximately x: 1500-3150, y: 1470-2610
     // Store buildings array for depth sorting
     this.buildings = [];
-    
+
     // Castle - Central landmark in the back of the island
-    const castle = this.add.image(2310, 1720, 'building-castle');
-    castle.setDepth(1);
+    // Asset: 320×256px sprite
+    // Collision Analysis: Bottom 62.5% (160px) is solid walls/structure
+    const castle = this.physics.add.staticImage(2310, 1720, 'building-castle');
     castle.setOrigin(0.5, 1); // Anchor at bottom center
+    castle.setDepth(1);
+    castle.body.setSize(200, 160); // Width: 200px, Height: 160px (bottom 62.5%)
+    castle.body.setOffset(60, -64); // offsetX=(320-200)/2=60, offsetY=96-160=-64 (flipped)
+    this.buildingsGroup.add(castle);
     this.buildings.push(castle);
-    
+
     // Tower 1 - Left side defense
-    const tower1 = this.add.image(1850, 2150, 'building-tower');
-    tower1.setDepth(1);
+    // Asset: 128×256px sprite
+    // Collision Analysis: Bottom 78% (200px) is solid cylindrical tower body
+    const tower1 = this.physics.add.staticImage(1850, 2150, 'building-tower');
     tower1.setOrigin(0.5, 1);
+    tower1.setDepth(1);
+    tower1.body.setSize(75, 200); // Width: 75px, Height: 200px (bottom 78%)
+    tower1.body.setOffset(27, -144); // offsetX=(128-75)/2=27, offsetY=56-200=-144 (flipped)
+    this.buildingsGroup.add(tower1);
     this.buildings.push(tower1);
-    
+
     // Tower 2 - Right side defense
-    const tower2 = this.add.image(2750, 2150, 'building-tower');
-    tower2.setDepth(1);
+    // Asset: 128×256px sprite
+    // Collision Analysis: Bottom 78% (200px) is solid cylindrical tower body
+    const tower2 = this.physics.add.staticImage(2750, 2150, 'building-tower');
     tower2.setOrigin(0.5, 1);
+    tower2.setDepth(1);
+    tower2.body.setSize(75, 200); // Width: 75px, Height: 200px (bottom 78%)
+    tower2.body.setOffset(27, -144); // offsetX=(128-75)/2=27, offsetY=56-200=-144 (flipped)
+    this.buildingsGroup.add(tower2);
     this.buildings.push(tower2);
-    
+
     // House 1 - Front-facing cottage, left area
-    const house1 = this.add.image(1750, 2450, 'building-house1');
-    house1.setDepth(1);
+    // Asset: 128×192px sprite
+    // Collision Analysis: Bottom 68% (130px) is solid walls/doors
+    const house1 = this.physics.add.staticImage(1750, 2450, 'building-house1');
     house1.setOrigin(0.5, 1);
+    house1.setDepth(1);
+    house1.body.setSize(85, 130); // Width: 85px, Height: 130px (bottom 68%)
+    house1.body.setOffset(22, -68); // offsetX=(128-85)/2=22, offsetY=62-130=-68 (flipped)
+    this.buildingsGroup.add(house1);
     this.buildings.push(house1);
-    
+
     // House 2 - Angled cottage, right area
-    const house2 = this.add.image(2850, 2450, 'building-house2');
-    house2.setDepth(1);
+    // Asset: 128×192px sprite
+    // Collision Analysis: Bottom 68% (130px) is solid walls/doors
+    const house2 = this.physics.add.staticImage(2850, 2450, 'building-house2');
     house2.setOrigin(0.5, 1);
+    house2.setDepth(1);
+    house2.body.setSize(85, 130); // Width: 85px, Height: 130px (bottom 68%)
+    house2.body.setOffset(22, -68); // offsetX=(128-85)/2=22, offsetY=62-130=-68 (flipped)
+    this.buildingsGroup.add(house2);
     this.buildings.push(house2);
-    
+
     // House 3 - Rear-facing house, center-left
-    const house3 = this.add.image(2100, 1950, 'building-house3');
-    house3.setDepth(1);
+    // Asset: 128×192px sprite
+    // Collision Analysis: Bottom 68% (130px) is solid walls/doors
+    const house3 = this.physics.add.staticImage(2100, 1950, 'building-house3');
     house3.setOrigin(0.5, 1);
+    house3.setDepth(1);
+    house3.body.setSize(85, 130); // Width: 85px, Height: 130px (bottom 68%)
+    house3.body.setOffset(22, -68); // offsetX=(128-85)/2=22, offsetY=62-130=-68 (flipped)
+    this.buildingsGroup.add(house3);
     this.buildings.push(house3);
-    
+
     // House 4 - Front-facing cottage, center-right
-    const house4 = this.add.image(2500, 2300, 'building-house1');
-    house4.setDepth(1);
+    // Asset: 128×192px sprite
+    // Collision Analysis: Bottom 68% (130px) is solid walls/doors
+    const house4 = this.physics.add.staticImage(2500, 2300, 'building-house1');
     house4.setOrigin(0.5, 1);
+    house4.setDepth(1);
+    house4.body.setSize(85, 130); // Width: 85px, Height: 130px (bottom 68%)
+    house4.body.setOffset(22, -68); // offsetX=(128-85)/2=22, offsetY=62-130=-68 (flipped)
+    this.buildingsGroup.add(house4);
     this.buildings.push(house4);
   }
 
@@ -136,103 +167,129 @@ export default class GameScene extends Phaser.Scene {
     // Island bounds: approximately x: 1500-3150, y: 1470-2610
     // Store decorations for depth sorting
     this.decorations = [];
-    
-    // Trees - Around the perimeter and scattered
-    // Left side trees
-    const tree1 = this.add.sprite(1600, 1750, 'tree1', 0);
+
+    // Trees - Around the perimeter and scattered (WITH COLLISION)
+    // Large trees - Tree1/Tree2 are 192×256px sprites
+    // Collision Analysis: Bottom 35% (90px) is trunk
+    const tree1 = this.physics.add.staticSprite(1600, 1750, 'tree1', 0);
     tree1.setOrigin(0.5, 1);
     tree1.setDepth(1);
+    tree1.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree1.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree1);
     this.decorations.push(tree1);
-    
-    const tree2 = this.add.sprite(1550, 2200, 'tree2', 1);
+
+    const tree2 = this.physics.add.staticSprite(1550, 2200, 'tree2', 1);
     tree2.setOrigin(0.5, 1);
     tree2.setDepth(1);
+    tree2.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree2.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree2);
     this.decorations.push(tree2);
-    
-    const tree3 = this.add.sprite(1700, 2500, 'tree1', 2);
+
+    const tree3 = this.physics.add.staticSprite(1700, 2500, 'tree1', 2);
     tree3.setOrigin(0.5, 1);
     tree3.setDepth(1);
+    tree3.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree3.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree3);
     this.decorations.push(tree3);
-    
+
     // Right side trees
-    const tree4 = this.add.sprite(3000, 1750, 'tree2', 3);
+    const tree4 = this.physics.add.staticSprite(3000, 1750, 'tree2', 3);
     tree4.setOrigin(0.5, 1);
     tree4.setDepth(1);
+    tree4.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree4.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree4);
     this.decorations.push(tree4);
-    
-    const tree5 = this.add.sprite(3050, 2200, 'tree1', 4);
+
+    const tree5 = this.physics.add.staticSprite(3050, 2200, 'tree1', 4);
     tree5.setOrigin(0.5, 1);
     tree5.setDepth(1);
+    tree5.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree5.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree5);
     this.decorations.push(tree5);
-    
-    const tree6 = this.add.sprite(2900, 2500, 'tree2', 5);
+
+    const tree6 = this.physics.add.staticSprite(2900, 2500, 'tree2', 5);
     tree6.setOrigin(0.5, 1);
     tree6.setDepth(1);
+    tree6.body.setSize(50, 90); // Width: 50px, Height: 90px (trunk only)
+    tree6.body.setOffset(71, 76); // offsetX=(192-50)/2=71, offsetY=166-90=76 (flipped)
+    this.treesGroup.add(tree6);
     this.decorations.push(tree6);
-    
-    // Smaller trees (tree3/tree4) scattered
-    const tree7 = this.add.sprite(2000, 1600, 'tree3', 0);
+
+    // Smaller trees - Tree3/Tree4 are 192×192px sprites
+    // Collision Analysis: Bottom 36% (70px) is trunk
+    const tree7 = this.physics.add.staticSprite(2000, 1600, 'tree3', 0);
     tree7.setOrigin(0.5, 1);
     tree7.setDepth(1);
+    tree7.body.setSize(40, 70); // Width: 40px, Height: 70px (trunk only)
+    tree7.body.setOffset(76, 52); // offsetX=(192-40)/2=76, offsetY=122-70=52 (flipped)
+    this.treesGroup.add(tree7);
     this.decorations.push(tree7);
-    
-    const tree8 = this.add.sprite(2600, 1600, 'tree4', 1);
+
+    const tree8 = this.physics.add.staticSprite(2600, 1600, 'tree4', 1);
     tree8.setOrigin(0.5, 1);
     tree8.setDepth(1);
+    tree8.body.setSize(40, 70); // Width: 40px, Height: 70px (trunk only)
+    tree8.body.setOffset(76, 52); // offsetX=(192-40)/2=76, offsetY=122-70=52 (flipped)
+    this.treesGroup.add(tree8);
     this.decorations.push(tree8);
-    
-    // Bushes - Ground level decorations scattered around
+
+    // Bushes - Ground level decorations scattered around (NO COLLISION - walkable)
     const bush1 = this.add.sprite(1900, 2100, 'bush1', 0);
     bush1.setOrigin(0.5, 1);
     bush1.setDepth(1);
     this.decorations.push(bush1);
-    
+
     const bush2 = this.add.sprite(2200, 2350, 'bush2', 1);
     bush2.setOrigin(0.5, 1);
     bush2.setDepth(1);
     this.decorations.push(bush2);
-    
+
     const bush3 = this.add.sprite(2700, 2100, 'bush3', 2);
     bush3.setOrigin(0.5, 1);
     bush3.setDepth(1);
     this.decorations.push(bush3);
-    
+
     const bush4 = this.add.sprite(2350, 1850, 'bush1', 3);
     bush4.setOrigin(0.5, 1);
     bush4.setDepth(1);
     this.decorations.push(bush4);
-    
+
     const bush5 = this.add.sprite(1850, 2350, 'bush2', 4);
     bush5.setOrigin(0.5, 1);
     bush5.setDepth(1);
     this.decorations.push(bush5);
-    
+
     const bush6 = this.add.sprite(2750, 2350, 'bush3', 5);
     bush6.setOrigin(0.5, 1);
     bush6.setDepth(1);
     this.decorations.push(bush6);
-    
-    // Rocks - Small detail elements
+
+    // Rocks - Small detail elements (NO COLLISION - walkable)
     const rock1 = this.add.image(1700, 1950, 'rock1');
     rock1.setOrigin(0.5, 1);
     rock1.setDepth(0);
-    
+
     const rock2 = this.add.image(2450, 2150, 'rock2');
     rock2.setOrigin(0.5, 1);
     rock2.setDepth(0);
-    
+
     const rock3 = this.add.image(1950, 2250, 'rock3');
     rock3.setOrigin(0.5, 1);
     rock3.setDepth(0);
-    
+
     const rock4 = this.add.image(2650, 1950, 'rock4');
     rock4.setOrigin(0.5, 1);
     rock4.setDepth(0);
-    
+
     const rock5 = this.add.image(1600, 2450, 'rock1');
     rock5.setOrigin(0.5, 1);
     rock5.setDepth(0);
-    
+
     const rock6 = this.add.image(2950, 2300, 'rock2');
     rock6.setOrigin(0.5, 1);
     rock6.setDepth(0);
@@ -251,7 +308,7 @@ export default class GameScene extends Phaser.Scene {
   createUI() {
     // Controls text
     const controlsText = this.add.text(10, 10, 
-      'Controls:\nWASD - Move\nSPACE - Attack/Heal\nSHIFT - Guard\nESC - Switch Character', 
+      'Controls:\nWASD - Move\nSPACE - Attack\nSHIFT - Guard', 
       {
         font: '14px Arial',
         fill: '#ffffff',
@@ -271,16 +328,6 @@ export default class GameScene extends Phaser.Scene {
     });
     this.healthText.setScrollFactor(0);
     this.healthText.setDepth(100);
-    
-    // Character indicator
-    this.characterText = this.add.text(10, 170, '', {
-      font: '16px Arial',
-      fill: '#ffff00',
-      backgroundColor: '#000000aa',
-      padding: { x: 10, y: 5 }
-    });
-    this.characterText.setScrollFactor(0);
-    this.characterText.setDepth(100);
     
     // Initialize DOM-based UI bars
     this.uiBars = new UIBars();
@@ -308,28 +355,24 @@ export default class GameScene extends Phaser.Scene {
     const warriorCount = Math.min(2 + Math.floor(this.currentWave / 2), 6);
     const archerCount = Math.min(1 + Math.floor(this.currentWave / 3), 4);
     
-    // Spawn positions around the island
-    const spawnPositions = [
-      { x: 2880, y: 2040 },  // Right side
-      { x: 1740, y: 2280 },  // Left-bottom
-      { x: 2310, y: 1680 },  // Top-center
-      { x: 2820, y: 1800 },  // Right-top
-      { x: 1800, y: 1920 },  // Left-center
-      { x: 2600, y: 2400 },  // Right-bottom
-      { x: 1600, y: 1700 },  // Left-top
-      { x: 2500, y: 1800 },  // Center-top
-    ];
+    // Get castle gate position from config
+    const gatePos = GameBalance.waves.castleGatePosition;
+    const spawnRadius = GameBalance.waves.spawnRadius;
     
-    // Spawn warriors
+    // Spawn warriors in a circle around castle gate
     for (let i = 0; i < warriorCount; i++) {
-      const pos = spawnPositions[i % spawnPositions.length];
-      this.spawnEnemy('warrior', pos.x, pos.y);
+      const angle = (Math.PI * 2 / warriorCount) * i;
+      const x = gatePos.x + Math.cos(angle) * spawnRadius;
+      const y = gatePos.y + Math.sin(angle) * spawnRadius;
+      this.spawnEnemy('warrior', x, y);
     }
     
-    // Spawn archers
+    // Spawn archers in outer ring (slightly further back)
     for (let i = 0; i < archerCount; i++) {
-      const pos = spawnPositions[(warriorCount + i) % spawnPositions.length];
-      this.spawnEnemy('archer', pos.x, pos.y);
+      const angle = (Math.PI * 2 / archerCount) * i + Math.PI / 4; // Offset by 45 degrees
+      const x = gatePos.x + Math.cos(angle) * (spawnRadius + 50);
+      const y = gatePos.y + Math.sin(angle) * (spawnRadius + 50);
+      this.spawnEnemy('archer', x, y);
     }
     
     // Show wave start message
@@ -380,170 +423,84 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  toggleCharacterMenu() {
-    if (this.menuOpen) {
-      this.closeCharacterMenu();
-    } else {
-      this.openCharacterMenu();
-    }
-  }
-
-  openCharacterMenu() {
-    this.menuOpen = true;
-    // Don't pause the scene - just stop character updates
-    this.physics.pause();
-    
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    
-    // Semi-transparent background
-    this.menuBg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
-    this.menuBg.setScrollFactor(0);
-    this.menuBg.setDepth(250);
-    
-    // Menu title
-    this.menuTitle = this.add.text(width / 2, height / 2 - 100, 'SELECT CHARACTER', {
-      font: '32px Arial',
-      fill: '#ffffff'
-    });
-    this.menuTitle.setOrigin(0.5);
-    this.menuTitle.setScrollFactor(0);
-    this.menuTitle.setDepth(251);
-    
-    // Warrior button
-    this.warriorBtn = this.add.text(width / 2, height / 2 - 20, '⚔️ WARRIOR', {
-      font: '24px Arial',
-      fill: this.currentCharacter === 'warrior' ? '#00ff00' : '#ffffff',
-      backgroundColor: this.currentCharacter === 'warrior' ? '#004400' : '#444444',
-      padding: { x: 20, y: 10 }
-    });
-    this.warriorBtn.setOrigin(0.5);
-    this.warriorBtn.setScrollFactor(0);
-    this.warriorBtn.setDepth(251);
-    this.warriorBtn.setInteractive({ useHandCursor: true });
-    this.warriorBtn.on('pointerdown', () => this.switchCharacter('warrior'));
-    
-    // Monk button
-    this.monkBtn = this.add.text(width / 2, height / 2 + 40, '✨ MONK (HEALER)', {
-      font: '24px Arial',
-      fill: this.currentCharacter === 'monk' ? '#00ff00' : '#ffffff',
-      backgroundColor: this.currentCharacter === 'monk' ? '#004400' : '#444444',
-      padding: { x: 20, y: 10 }
-    });
-    this.monkBtn.setOrigin(0.5);
-    this.monkBtn.setScrollFactor(0);
-    this.monkBtn.setDepth(251);
-    this.monkBtn.setInteractive({ useHandCursor: true });
-    this.monkBtn.on('pointerdown', () => this.switchCharacter('monk'));
-    
-    // Close instruction
-    this.closeText = this.add.text(width / 2, height / 2 + 100, 'Press ESC to close', {
-      font: '16px Arial',
-      fill: '#aaaaaa'
-    });
-    this.closeText.setOrigin(0.5);
-    this.closeText.setScrollFactor(0);
-    this.closeText.setDepth(251);
-  }
-
-  closeCharacterMenu() {
-    this.menuOpen = false;
-    // Resume physics
-    this.physics.resume();
-    
-    if (this.menuBg) this.menuBg.destroy();
-    if (this.menuTitle) this.menuTitle.destroy();
-    if (this.warriorBtn) this.warriorBtn.destroy();
-    if (this.monkBtn) this.monkBtn.destroy();
-    if (this.closeText) this.closeText.destroy();
-  }
-
-  switchCharacter(type) {
-    if (type === this.currentCharacter) {
-      this.closeCharacterMenu();
-      return;
-    }
-    
-    // Get current active character
-    const currentChar = this.currentCharacter === 'warrior' ? this.player : this.monk;
-    const newChar = type === 'warrior' ? this.player : this.monk;
-    
-    // Transfer position
-    newChar.x = currentChar.x;
-    newChar.y = currentChar.y;
-    newChar.shadow.setPosition(newChar.x, newChar.y + 60);
-    
-    // Ensure new character has health and physics enabled
-    if (newChar.health <= 0) {
-      newChar.health = newChar.maxHealth; // Restore health if dead
-    }
-    newChar.body.enable = true; // Ensure physics is enabled
-    
-    // Deactivate current character
-    currentChar.setActive(false);
-    currentChar.setVisible(false);
-    currentChar.shadow.setVisible(false);
-    
-    // Activate new character
-    newChar.setActive(true);
-    newChar.setVisible(true);
-    newChar.shadow.setVisible(true);
-    
-    // Update camera to follow new character
-    this.cameras.main.stopFollow();
-    this.cameras.main.startFollow(newChar, true, 0.1, 0.1);
-    
-    this.currentCharacter = type;
-    this.closeCharacterMenu();
-  }
+  // Character menu methods removed - single hero gameplay only
 
   update(time, delta) {
-    // Update active character
-    const activeChar = this.currentCharacter === 'warrior' ? this.player : this.monk;
-    
-    if (activeChar && activeChar.active) {
-      activeChar.update(time, delta);
+    // Update player
+    if (this.player && this.player.active) {
+      this.player.update(time, delta);
       
       // Update health display
-      this.healthText.setText(`HP: ${Math.max(0, activeChar.health)}/${activeChar.maxHealth}`);
+      this.healthText.setText(`HP: ${Math.max(0, this.player.health)}/${this.player.maxHealth}`);
       
       // Update DOM-based health and XP bars
-      this.uiBars.updateHealth(activeChar.health, activeChar.maxHealth);
-      this.uiBars.updateXP(activeChar.xp, activeChar.xpToNextLevel, activeChar.level);
-      
-      // Update character indicator
-      const charName = this.currentCharacter === 'warrior' ? 'Warrior' : 'Monk';
-      this.characterText.setText(`Character: ${charName}`);
+      this.uiBars.updateHealth(this.player.health, this.player.maxHealth);
+      this.uiBars.updateXP(this.player.xp, this.player.xpToNextLevel, this.player.level);
       
       // Update wave counter
       this.waveText.setText(`Wave ${this.currentWave}/${this.maxWaves}`);
     }
     
-    // Update enemies (they target active character)
+    // Update enemies (they target player)
     this.enemies.getChildren().forEach(enemy => {
       if (enemy.active) {
-        enemy.update(time, delta, activeChar);
+        enemy.update(time, delta, this.player);
       }
     });
 
-    // Update building depth sorting based on Y position
-    this.buildings.forEach(building => {
-      // Buildings in front of characters if character Y < building Y
-      if (activeChar.y < building.y) {
-        building.setDepth(3); // In front
-      } else {
-        building.setDepth(1); // Behind
+    // Dynamic depth sorting for all characters and environment
+    // Characters get +1 depth boost to always render in front of buildings at same Y position
+
+    // Set player depth based on Y position
+    if (this.player) {
+      this.player.setDepth(this.player.y + 1);
+      if (this.player.shadow) this.player.shadow.setDepth(0);
+
+      // Debug: Log player info occasionally
+      if (Math.random() < 0.01) {
+        console.log('Player:', {
+          y: this.player.y,
+          depth: this.player.y + 1
+        });
+      }
+    }
+
+    if (this.monk) {
+      this.monk.setDepth(this.monk.y + 1);
+      if (this.monk.shadow) this.monk.shadow.setDepth(0);
+    }
+
+    // Set enemy depths based on Y position (also with +1 boost)
+    this.enemies.getChildren().forEach(enemy => {
+      if (enemy.active) {
+        enemy.setDepth(enemy.y + 1);
+        if (enemy.shadow) enemy.shadow.setDepth(0);
+        if (enemy.healthBarBg) enemy.healthBarBg.setDepth(enemy.y + 2);
+        if (enemy.healthBarFill) enemy.healthBarFill.setDepth(enemy.y + 3);
       }
     });
-    
-    // Update decoration depth sorting based on Y position
-    this.decorations.forEach(decoration => {
-      // Decorations in front of characters if character Y < decoration Y
-      if (activeChar.y < decoration.y) {
-        decoration.setDepth(3); // In front
-      } else {
-        decoration.setDepth(1); // Behind
+
+    // Set building depths based on Y position minus height
+    // This makes tall buildings render "earlier" so characters can appear in front
+    this.buildings.forEach(building => {
+      const buildingDepth = building.y - building.displayHeight;
+      building.setDepth(buildingDepth);
+
+      // Debug: Log first building's info
+      if (building === this.buildings[0] && Math.random() < 0.01) {
+        console.log('Building:', {
+          y: building.y,
+          height: building.displayHeight,
+          depth: buildingDepth
+        });
       }
+    });
+
+    // Set decoration depths based on Y position minus height
+    // Trees are tall, so they need the same treatment as buildings
+    this.decorations.forEach(decoration => {
+      const decorationDepth = decoration.y - decoration.displayHeight;
+      decoration.setDepth(decorationDepth);
     });
     
     // Update health potions

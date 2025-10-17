@@ -1,52 +1,35 @@
 import Phaser from 'phaser';
-import FloatingText from '../utils/FloatingText.js';
+import BaseCharacter from './BaseCharacter.js';
+import { GameBalance } from '../config/GameBalance.js';
 
-export default class Player extends Phaser.Physics.Arcade.Sprite {
+export default class Player extends BaseCharacter {
   constructor(scene, x, y, collisionMap) {
-    super(scene, x, y, 'black-warrior-idle');
+    // Get warrior stats from config
+    const stats = GameBalance.player.warrior;
     
-    // Add to scene
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
+    // Call BaseCharacter constructor with stats
+    super(scene, x, y, 'black-warrior-idle', {
+      health: stats.startHealth,
+      moveSpeed: stats.moveSpeed,
+      attackDamage: stats.startDamage
+    });
     
     // Store collision map reference
     this.collisionMap = collisionMap;
     
-    // Player stats
-    this.health = 100;
-    this.maxHealth = 100;
-    this.moveSpeed = 200;
-    this.attackDamage = 20;
-    this.isAttacking = false;
+    // Player-specific state
     this.isGuarding = false;
     this.attackCooldown = 0;
     this.lastAttackType = 'attack1';
-    this.facingDirection = 1; // 1 = right, -1 = left
-    this.facingVertical = 0; // 1 = down, -1 = up, 0 = none
     this.lastMovementX = 0;
     this.lastMovementY = 0;
     
-    // XP and Leveling
-    this.level = 1;
-    this.xp = 0;
-    this.xpToNextLevel = 100; // Level * 100
-    
-    // Setup physics
+    // Setup physics (override base offset for player)
     this.setCollideWorldBounds(false); // We handle collision manually
-    // Smaller collision box for tighter, more accurate collisions
-    this.body.setSize(60, 80);
-    this.body.setOffset(66, 90);
+    this.body.setOffset(66, 50); // Player-specific offset
     
     // Create animations
     this.createAnimations();
-    
-    // Add shadow
-    this.shadow = scene.add.image(x, y + 60, 'shadow');
-    this.shadow.setScale(0.3);
-    this.shadow.setAlpha(0.5);
-    this.shadow.setDepth(0);
-    
-    this.setDepth(2);
     
     // Setup controls
     this.keys = scene.input.keyboard.addKeys({
@@ -117,8 +100,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(time, delta) {
-    // Update shadow position
-    this.shadow.setPosition(this.x, this.y + 60);
+    // Call base class update (handles shadow, depth sorting)
+    super.update(time, delta);
     
     // Update attack cooldown
     if (this.attackCooldown > 0) {
@@ -272,100 +255,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  heal(amount) {
-    this.health = Math.min(this.health + amount, this.maxHealth);
-
-    // Floating heal number
-    FloatingText.createHeal(this.scene, this.x, this.y - 50, amount);
-
-    // Visual feedback
-    this.setTint(0x00ff00);
-    this.scene.time.delayedCall(200, () => {
-      if (this.active) {
-        this.clearTint();
-      }
-    });
-  }
-
+  /**
+   * Override takeDamage to apply guard damage reduction
+   */
   takeDamage(amount) {
-    if (this.isGuarding) {
-      amount *= 0.5; // 50% damage reduction when guarding
-    }
-
-    this.health -= amount;
-
-    // Floating damage number
-    FloatingText.createDamage(this.scene, this.x, this.y - 50, amount);
-
-    // Visual feedback
-    this.setTint(0xff0000);
-    this.scene.time.delayedCall(100, () => {
-      // Check if player still exists before clearing tint
-      if (this.active) {
-        this.clearTint();
-      }
-    });
-
-    if (this.health <= 0) {
-      this.die();
-    }
-  }
-
-  gainXP(amount) {
-    this.xp += amount;
-    
-    // Show XP gain
-    FloatingText.createXP(this.scene, this.x, this.y - 70, amount);
-    
-    // Check for level up
-    while (this.xp >= this.xpToNextLevel) {
-      this.levelUp();
-    }
+    // Apply guard damage reduction if active
+    const reduction = this.isGuarding ? GameBalance.player.warrior.guardDamageReduction : 0;
+    super.takeDamage(amount, { damageReduction: reduction });
   }
   
+  /**
+   * Override levelUp to add warrior-specific stat increases
+   */
   levelUp() {
-    // Cap at level 10
-    if (this.level >= 10) {
-      this.xp = this.xpToNextLevel; // Cap XP at max
-      return;
-    }
+    // Call base class level up (handles XP, level increment, visual feedback)
+    super.levelUp();
     
-    this.level++;
-    this.xp -= this.xpToNextLevel;
-    this.xpToNextLevel = this.level * 100;
+    // Warrior-specific stat increases
+    const stats = GameBalance.player.warrior;
+    this.maxHealth += stats.healthPerLevel;
+    this.attackDamage += stats.damagePerLevel;
     
-    // Stat increases
-    this.maxHealth += 20;
-    this.health = this.maxHealth; // Heal to full on level up
-    this.attackDamage += 5;
-    
-    // Visual feedback
-    FloatingText.createLevelUp(this.scene, this.x, this.y - 90, this.level);
-    
-    // Particle effect
-    this.scene.add.particles(this.x, this.y, 'shadow', {
-      speed: { min: 100, max: 200 },
-      scale: { start: 0.5, end: 0 },
-      blendMode: 'ADD',
-      lifespan: 500,
-      quantity: 20,
-      tint: 0xffd700
-    });
-  }
-
-  die() {
-    // Death animation/logic
-    this.setActive(false);
-    this.setVisible(false);
-    this.shadow.setVisible(false);
-    console.log('Player died!');
-  }
-
-  destroy() {
-    if (this.shadow) {
-      this.shadow.destroy();
-    }
-    super.destroy();
+    // Health is already set to maxHealth by base class
   }
 }
 
