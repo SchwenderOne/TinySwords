@@ -50,11 +50,13 @@ export class WaveTester {
     if (this.isTestMode) {
       console.log('🧪 WAVE TEST MODE ENABLED');
       console.log('Wave will auto-complete when all enemies are dead');
-      this.testModeText.setText('TEST MODE: ON').setFillStyle(0x00ff00);
+      this.testModeText.setText('TEST MODE: ON');
+      this.testModeText.setFillStyle(0x00ff00);
       this.startTestMode();
     } else {
       console.log('🧪 WAVE TEST MODE DISABLED');
-      this.testModeText.setText('TEST MODE: OFF').setFillStyle(0xff0000);
+      this.testModeText.setText('TEST MODE: OFF');
+      this.testModeText.setFillStyle(0xff0000);
       this.autoProgress = false;
     }
   }
