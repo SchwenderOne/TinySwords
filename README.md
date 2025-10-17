@@ -4,12 +4,12 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 
 ![Game Screenshot](map-2.png)
 
-**Status:** 🚧 In Development - Phase 1 Complete  
-**Play Now:** `cd game && npm run dev` → http://localhost:3002/
+**Status:** 🚧 In Development - Phase 1, 2, 3 Complete  
+**Play Now:** `cd game && npm run dev` → http://localhost:3000/
 
 ---
 
-## 🎮 Current Features (v0.2.0)
+## 🎮 Current Features (v0.3.0)
 
 ### Core Gameplay
 - **Single Hero:** Play as the Warrior with melee combat and guard ability
@@ -18,6 +18,19 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 - **Strategic Combat:** 4-directional attacks, guard ability (50% damage reduction)
 - **Dynamic Spawns:** Enemies spawn from the castle gate in focused patterns
 
+### AI Allies (NEW - Phase 2)
+- **Ally Warriors (Blue):** Melee fighters that auto-engage enemies within 200px
+- **Ally Monks (Blue):** Healers that follow you and auto-heal when wounded
+- **Smart AI:** Allies follow you, detect enemies, and return when targets are lost
+- **Visual Distinction:** Blue units contrast with your black warrior and red enemies
+
+### Interactive Buildings (NEW - Phase 3)
+- **6 Interactive Buildings:** 4 Houses + 2 Towers across the island
+- **Press E to Spawn:** Houses spawn warriors, towers spawn monks
+- **20-Second Cooldown:** Strategic timing for ally spawning
+- **Visual Feedback:** Proximity prompts, cooldown bars, particle effects
+- **Survivors-Like Gameplay:** Build your army as you progress!
+
 ### Progression
 - **XP Rewards:** +50 XP (warriors), +30 XP (archers)
 - **Level Benefits:** +20 HP, +5 damage per level
@@ -25,9 +38,9 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 
 ### Environment
 - **Pixel-Perfect Collision:** Stay on the green island
-- **Interactive Environment:** Buildings, trees with collision
-- **Visual Feedback:** Floating damage/heal numbers, level-up effects
-- **Professional UI:** DOM-based health and XP bars
+- **Interactive Buildings:** Walk near and press E to spawn allies
+- **Visual Feedback:** Floating damage/heal numbers, level-up effects, building prompts
+- **Professional UI:** DOM-based health and XP bars, cooldown timers
 
 ---
 
@@ -38,6 +51,7 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 | **WASD** | Move in all directions |
 | **SPACE** | Attack (direction based on movement) |
 | **SHIFT** | Guard (50% damage reduction) |
+| **E** | Interact with buildings (spawn allies) |
 | **R** | Restart game (after death/victory) |
 
 ---
@@ -90,15 +104,21 @@ Wave 5: 11 enemies (6 warriors, 5 archers)
 ```
 
 ### Enemy Types
-- **Red Warriors:** Melee attackers, patrol and chase
-- **Red Archers:** Stationary ranged units (400px range)
+- **Red Warriors:** Melee attackers, patrol and chase (100 HP, 10 damage)
+- **Red Archers:** Stationary ranged units (60 HP, 8 damage, 400px range)
 
-### Tips
-- Enemies spawn from the castle at the north
-- Use guard (SHIFT) when surrounded
-- Health potions have 30% drop chance
-- Level up fully restores your health
-- Attack direction follows your last movement
+### Ally Types
+- **Blue Warriors:** Melee allies, auto-engage enemies (80 HP, 12 damage)
+- **Blue Monks:** Healer allies, auto-heal player when wounded (60 HP, 20 heal)
+
+### Strategy Tips
+- **Early Game:** Spawn allies from buildings before waves get harder
+- **Building Cooldowns:** 20 seconds each - plan your spawns strategically
+- **Ally Mix:** Get at least one monk for healing, rest warriors for DPS
+- **Positioning:** Keep moving, allies will follow and assist automatically
+- **Guard Usage:** Use SHIFT when surrounded, even with allies
+- **Health Management:** Monks auto-heal + 30% potion drops = survivability
+- **Leveling:** Level up fully restores health and boosts stats
 
 ---
 
@@ -118,20 +138,24 @@ Wave 5: 11 enemies (6 warriors, 5 archers)
 game/
 ├── src/
 │   ├── config/
-│   │   └── GameBalance.js      # Centralized game configuration
+│   │   └── GameBalance.js        # Centralized game configuration
 │   ├── entities/
-│   │   ├── BaseCharacter.js    # Shared character logic
-│   │   ├── Player.js           # Warrior implementation
-│   │   ├── Enemy.js            # AI opponents
-│   │   └── HealthPotion.js     # Collectible items
+│   │   ├── BaseCharacter.js      # Shared character logic
+│   │   ├── Player.js             # Warrior implementation
+│   │   ├── AllyCharacter.js      # AI ally base class
+│   │   ├── AllyWarrior.js        # Blue warrior ally
+│   │   ├── AllyMonk.js           # Blue monk healer
+│   │   ├── InteractiveBuilding.js # Building interaction system
+│   │   ├── Enemy.js              # AI opponents
+│   │   └── HealthPotion.js       # Collectible items
 │   ├── scenes/
-│   │   ├── BootScene.js        # Asset loading
-│   │   └── GameScene.js        # Main game loop
+│   │   ├── BootScene.js          # Asset loading
+│   │   └── GameScene.js          # Main game loop
 │   └── utils/
-│       ├── CollisionMap.js     # Terrain detection
-│       ├── FloatingText.js     # Visual feedback
-│       └── UIBars.js           # Health/XP bars
-└── public/assets/              # Sprites, map, buildings
+│       ├── CollisionMap.js       # Terrain detection
+│       ├── FloatingText.js       # Visual feedback
+│       └── UIBars.js             # Health/XP bars
+└── public/assets/                # Sprites, map, buildings
 
 Assets/                         # Source art files
 ├── Units/                      # Character sprites
@@ -144,21 +168,21 @@ Assets/                         # Source art files
 
 ## 🚧 Upcoming Features
 
-### Phase 2: AI Allies (In Progress)
-- Spawn ally warriors and monks from buildings
-- AI companions that follow and assist in combat
-
-### Phase 3: Building Interactions
-- Interactive buildings with 30-second cooldowns
-- Strategic ally spawning system
-
-### Phase 4: Ability System
+### Phase 4: Ability System (Next)
 - Unlock powerful abilities at levels 3, 5, 8, 10
-- New attacks from slash effect asset pack
+- Power Slash, Whirlwind, Battle Charge, Titan Strike
+- Number key bindings (1-4)
+- Slash effect animations
 
-### Phase 5: Meta Progression
+### Phase 5: Enemy Tuning
+- Balance difficulty with ally support
+- Adjust enemy counts and stats
+- Test wave progression
+
+### Phase 6: Meta Progression
 - Persistent upgrades across runs
 - Currency system for permanent buffs
+- Post-run summary screen
 
 See `ROADMAP.md` for detailed development plan.
 
@@ -228,6 +252,6 @@ Created by [@SchwenderOne](https://github.com/SchwenderOne)
 
 ---
 
-**Current Version:** v0.2.0-phase1  
+**Current Version:** v0.3.0  
 **Last Updated:** October 17, 2025  
-**Status:** ✅ Phase 1 Complete, 🚧 Phase 2 Starting
+**Status:** ✅ Phase 1, 2, 3 Complete → 🚧 Phase 4 Next

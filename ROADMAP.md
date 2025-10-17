@@ -1,7 +1,7 @@
 # 🗺️ Development Roadmap - Survivors-Like Pivot
 
 **Timeline:** 10-12 weeks part-time (~10 hrs/week)  
-**Current Status:** ✅ Phase 1 Complete → Starting Phase 2
+**Current Status:** ✅ Phase 1, 2, 3 Complete → Starting Phase 4
 
 ---
 
@@ -34,96 +34,102 @@
 
 ---
 
-## 🏗️ Phase 2: Ally System (Weeks 3-4) - NEXT
+## ✅ Phase 2: Ally System (Weeks 3-4) - COMPLETE
 
 ### Goals
 - Create AI-controlled allies
 - Implement follow/engage behaviors
 - Test allies in combat
 
-### Tasks
+### Completed Work
 
 #### 2.1: AllyCharacter Base Class
-- [ ] Create `src/entities/AllyCharacter.js` extending BaseCharacter
-- [ ] Implement AI state machine (follow, engage)
-- [ ] Add leader reference (follows player)
-- [ ] Implement `updateAI()` core loop
+- [x] Created `src/entities/AllyCharacter.js` extending BaseCharacter
+- [x] Implemented AI state machine (follow, engage)
+- [x] Added leader reference (follows player)
+- [x] Implemented `updateAI()` core loop
 
 #### 2.2: Ally Behaviors
-- [ ] `followLeader()` - Trail player at distance
-- [ ] `checkForEnemies()` - Detect enemies in assist radius
-- [ ] `engageTarget()` - Move to and attack enemy
-- [ ] Handle target death/escape (return to follow)
+- [x] `followLeader()` - Trail player at distance
+- [x] `checkForEnemies()` - Detect enemies in assist radius
+- [x] `engageTarget()` - Move to and attack enemy
+- [x] Handle target death/escape (return to follow)
 
 #### 2.3: Ally Variants
-- [ ] Create `src/entities/AllyWarrior.js`
+- [x] Created `src/entities/AllyWarrior.js`
   - Melee combat (80 HP, 12 damage)
   - Auto-engage nearest enemy
-- [ ] Create `src/entities/AllyMonk.js`
+- [x] Created `src/entities/AllyMonk.js`
   - Follow player closely (60 HP)
   - Heal player when damaged (20 HP heal)
 
 #### 2.4: Integration
-- [ ] Add allies group to `GameScene`
-- [ ] Setup collisions (allies ↔ enemies, environment)
-- [ ] Manual spawn for testing (press key)
-- [ ] Test with 2-3 allies + enemies
+- [x] Added allies group to `GameScene`
+- [x] Setup collisions (allies ↔ enemies, environment)
+- [x] Added blue unit sprites (Blue Warrior, Blue Monk)
+- [x] Tested with 2-3 allies + enemies
 
-### Success Criteria
-- Allies follow player smoothly
-- Allies engage enemies within range
-- AI feels responsive, not janky
-- Performance stable (60 FPS)
+### Deliverables
+✅ Allies follow player smoothly  
+✅ Allies engage enemies within range  
+✅ AI feels responsive and natural  
+✅ Performance stable (60 FPS with 6 allies + 10 enemies)
 
-### Estimated Time
-8-10 hours over 2 weeks
+**Git Commit:**
+- `3cf15f6` - feat: Phase 2 & 3 - AI Ally System and Interactive Buildings
+
+**Time Spent:** ~4 hours
 
 ---
 
-## 🏠 Phase 3: Building Interactions (Weeks 5-6)
+## ✅ Phase 3: Building Interactions (Weeks 5-6) - COMPLETE
 
 ### Goals
 - Make buildings interactive
 - Implement cooldown system
 - Connect buildings to ally spawning
 
-### Tasks
+### Completed Work
 
 #### 3.1: InteractiveBuilding Class
-- [ ] Create `src/entities/InteractiveBuilding.js`
-- [ ] Proximity detection (100px radius)
-- [ ] Cooldown timer (30,000ms)
-- [ ] Visual feedback (prompt, cooldown bar)
+- [x] Created `src/entities/InteractiveBuilding.js`
+- [x] Proximity detection (100px radius)
+- [x] Cooldown timer (20,000ms - reduced from 30s per request)
+- [x] Visual feedback (prompt, cooldown bar)
 
 #### 3.2: UI Elements
-- [ ] "Press E" prompt when in range
-- [ ] Cooldown bar above building
-- [ ] Particle effect on spawn
-- [ ] Change prompt color based on cooldown
+- [x] "Press E to spawn [Warrior/Monk]" prompt when in range
+- [x] Cooldown bar above building with countdown
+- [x] Particle effect on spawn (blue for warriors, green for monks)
+- [x] Prompt color changes (green when ready, red during cooldown)
 
 #### 3.3: Integration
-- [ ] Add E key handler to GameScene
-- [ ] Replace static buildings with InteractiveBuildings
-- [ ] Connect Houses → spawn AllyWarrior
-- [ ] Connect Towers → spawn AllyMonk
+- [x] Added E key handler to GameScene
+- [x] Made 6 buildings interactive (4 houses, 2 towers)
+- [x] Houses spawn AllyWarrior
+- [x] Towers spawn AllyMonk
+- [x] Allies spawn in front of buildings
 
 #### 3.4: Balancing
-- [ ] Test ally count limits (max 4-6)
-- [ ] Tune cooldown duration
-- [ ] Adjust ally stats if too strong/weak
+- [x] Tested with multiple allies (up to 6+)
+- [x] 20-second cooldown works well
+- [x] Ally stats balanced for gameplay
 
-### Success Criteria
-- Buildings clearly indicate interactivity
-- Cooldown system feels fair
-- Strategic decision: when to spawn allies
-- Allies spawn with visual feedback
+### Deliverables
+✅ Buildings clearly indicate interactivity  
+✅ Cooldown system feels fair and strategic  
+✅ E key interaction is intuitive  
+✅ Allies spawn with visual feedback  
+✅ 4 Houses spawn warriors, 2 Towers spawn monks
 
-### Estimated Time
-8-10 hours over 2 weeks
+**Git Commit:**
+- `3cf15f6` - feat: Phase 2 & 3 - AI Ally System and Interactive Buildings
+
+**Time Spent:** ~3 hours
 
 ---
 
-## ⚡ Phase 4: Ability System (Weeks 7-8)
+## ⚡ Phase 4: Ability System (Weeks 7-8) - NEXT
 
 ### Goals
 - Unlock abilities at levels 3/5/8/10
@@ -267,9 +273,9 @@
 | Phase | Status | Time Spent | Git Commits |
 |-------|--------|------------|-------------|
 | Phase 1: Foundation | ✅ Complete | ~3 hours | 2 commits |
-| Phase 2: Ally System | 🔜 Next | - | - |
-| Phase 3: Buildings | ⏳ Pending | - | - |
-| Phase 4: Abilities | ⏳ Pending | - | - |
+| Phase 2: Ally System | ✅ Complete | ~4 hours | 1 commit |
+| Phase 3: Buildings | ✅ Complete | ~3 hours | 1 commit |
+| Phase 4: Abilities | 🔜 Next | - | - |
 | Phase 5: Tuning | ⏳ Pending | - | - |
 | Phase 6: Meta | ⏳ Pending | - | - |
 | Phase 7: Polish | ⏳ Pending | - | - |
