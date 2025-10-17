@@ -169,7 +169,71 @@ export default class BootScene extends Phaser.Scene {
     });
     
     this.load.image('arrow', '/assets/red-archer/Arrow.png');
-    
+
+    // Load Red Lancer sprites (Enemy)
+    this.load.spritesheet('red-lancer-idle', '/assets/red-lancer/Lancer_Idle.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('red-lancer-run', '/assets/red-lancer/Lancer_Run.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('red-lancer-attack', '/assets/red-lancer/Lancer_Right_Attack.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    // Load Blue Lancer sprites (Enemy)
+    this.load.spritesheet('blue-lancer-idle', '/assets/blue-lancer/Lancer_Idle.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('blue-lancer-run', '/assets/blue-lancer/Lancer_Run.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('blue-lancer-attack', '/assets/blue-lancer/Lancer_Right_Attack.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    // Load Yellow Lancer sprites (Enemy)
+    this.load.spritesheet('yellow-lancer-idle', '/assets/yellow-lancer/Lancer_Idle.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('yellow-lancer-run', '/assets/yellow-lancer/Lancer_Run.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('yellow-lancer-attack', '/assets/yellow-lancer/Lancer_Right_Attack.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    // Load Black Lancer sprites (Enemy)
+    this.load.spritesheet('black-lancer-idle', '/assets/black-lancer/Lancer_Idle.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('black-lancer-run', '/assets/black-lancer/Lancer_Run.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
+    this.load.spritesheet('black-lancer-attack', '/assets/black-lancer/Lancer_Right_Attack.png', {
+      frameWidth: 320,
+      frameHeight: 320
+    });
+
     // Load Buildings
     this.load.image('building-house1', '/assets/buildings/House1.png');
     this.load.image('building-house2', '/assets/buildings/House2.png');

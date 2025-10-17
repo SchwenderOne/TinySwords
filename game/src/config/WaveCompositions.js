@@ -308,24 +308,16 @@ export const WaveCompositions = {
 
   wave21: {
     phase: 'Ultimate Challenge',
-    notes: 'Challenge - One of each archetype (12 distinct enemy types)',
+    notes: 'Lancer Squadron - One lancer of each color faction',
     enemies: [
-      { archetype: 'E1_GRUNT', count: 1 },
-      { archetype: 'E2_SPEARMAN', count: 1 },
-      { archetype: 'E3_ARCHER', count: 1 },
-      { archetype: 'E4_ROGUE', count: 1 },
-      { archetype: 'E5_SHIELDBEARER', count: 1 },
-      { archetype: 'E6_HEAVY_KNIGHT', count: 1 },
-      { archetype: 'E7_BOMBER', count: 1 },
-      { archetype: 'E8_MAGE', count: 1 },
-      { archetype: 'E9_HEALER', count: 1 },
-      { archetype: 'E10_SUMMONER', count: 1 },
-      { archetype: 'E11_CAPTAIN', count: 1, isMini: true },
-      { archetype: 'E12_COLOSSUS', count: 1, isMini: true }
+      { archetype: 'E13_LANCER_RED', count: 1, isMini: true },
+      { archetype: 'E14_LANCER_BLUE', count: 1, isMini: true },
+      { archetype: 'E15_LANCER_YELLOW', count: 1, isMini: true },
+      { archetype: 'E16_LANCER_BLACK', count: 1, isMini: true }
     ],
-    spawningPulses: 2,
+    spawningPulses: 1,
     hasMini: true,
-    miniBosses: ['E11_CAPTAIN', 'E12_COLOSSUS'],
+    miniBosses: ['E13_LANCER_RED', 'E14_LANCER_BLUE', 'E15_LANCER_YELLOW', 'E16_LANCER_BLACK'],
     difficulty: 'LEGEND'
   }
 };

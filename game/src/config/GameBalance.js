@@ -233,6 +233,58 @@ export const GameBalance = {
       tint: 0x9900ff,
       special: 'colossus', // Massive knockback, slow
       xpWeight: 8.0
+    },
+    E13_LANCER_RED: {
+      name: 'Lancer',
+      baseUnit: 'lancer',
+      hpMultiplier: 1.1,
+      dmgMultiplier: 1.0,
+      msMultiplier: 0.9,
+      arMultiplier: 1.0,
+      scale: 0.6,
+      tint: 0xff0000,
+      special: 'reach', // +20px attack range
+      xpWeight: 1.2,
+      color: 'red'
+    },
+    E14_LANCER_BLUE: {
+      name: 'Lancer',
+      baseUnit: 'lancer',
+      hpMultiplier: 1.1,
+      dmgMultiplier: 1.0,
+      msMultiplier: 0.9,
+      arMultiplier: 1.0,
+      scale: 0.6,
+      tint: 0x0099ff,
+      special: 'reach', // +20px attack range
+      xpWeight: 1.2,
+      color: 'blue'
+    },
+    E15_LANCER_YELLOW: {
+      name: 'Lancer',
+      baseUnit: 'lancer',
+      hpMultiplier: 1.1,
+      dmgMultiplier: 1.0,
+      msMultiplier: 0.9,
+      arMultiplier: 1.0,
+      scale: 0.6,
+      tint: 0xffff00,
+      special: 'reach', // +20px attack range
+      xpWeight: 1.2,
+      color: 'yellow'
+    },
+    E16_LANCER_BLACK: {
+      name: 'Lancer',
+      baseUnit: 'lancer',
+      hpMultiplier: 1.1,
+      dmgMultiplier: 1.0,
+      msMultiplier: 0.9,
+      arMultiplier: 1.0,
+      scale: 0.6,
+      tint: 0x333333,
+      special: 'reach', // +20px attack range
+      xpWeight: 1.2,
+      color: 'black'
     }
   },
 

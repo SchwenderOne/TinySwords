@@ -143,7 +143,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Play idle animation
-    const idleAnim = this.baseUnit === 'warrior' ? 'red-warrior-idle' : 'red-archer-idle';
+    let idleAnim;
+    if (this.baseUnit === 'warrior') {
+      idleAnim = 'red-warrior-idle';
+    } else if (this.baseUnit === 'lancer') {
+      const color = this.archetype.color || 'red';
+      idleAnim = `${color}-lancer-idle`;
+    } else {
+      idleAnim = 'red-archer-idle';
+    }
     this.play(idleAnim);
   }
 
@@ -208,6 +216,41 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
           repeat: 0
         });
       }
+    } else if (this.baseUnit === 'lancer') {
+      // Lancer animations (all colors)
+      const colors = ['red', 'blue', 'yellow', 'black'];
+
+      colors.forEach(color => {
+        // Lancer Idle - 12 frames from 3840×320 sprite sheet (320×320 per frame)
+        if (!anims.exists(`${color}-lancer-idle`)) {
+          anims.create({
+            key: `${color}-lancer-idle`,
+            frames: anims.generateFrameNumbers(`${color}-lancer-idle`, { start: 0, end: 11 }),
+            frameRate: 6,
+            repeat: -1
+          });
+        }
+
+        // Lancer Run - 6 frames from 1920×320 sprite sheet (320×320 per frame)
+        if (!anims.exists(`${color}-lancer-run`)) {
+          anims.create({
+            key: `${color}-lancer-run`,
+            frames: anims.generateFrameNumbers(`${color}-lancer-run`, { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: -1
+          });
+        }
+
+        // Lancer Attack - 3 frames from 960×320 sprite sheet (320×320 per frame)
+        if (!anims.exists(`${color}-lancer-attack`)) {
+          anims.create({
+            key: `${color}-lancer-attack`,
+            frames: anims.generateFrameNumbers(`${color}-lancer-attack`, { start: 0, end: 2 }),
+            frameRate: 12,
+            repeat: 0
+          });
+        }
+      });
     } else {
       // Archer animations
       if (!anims.exists('red-archer-idle')) {
@@ -461,8 +504,14 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setFlipX(true);
       }
 
-      if (this.anims.currentAnim?.key !== 'red-warrior-run') {
-        this.play('red-warrior-run', true);
+      let runAnim = 'red-warrior-run';
+      if (this.baseUnit === 'lancer') {
+        const color = this.archetype.color || 'red';
+        runAnim = `${color}-lancer-run`;
+      }
+
+      if (this.anims.currentAnim?.key !== runAnim) {
+        this.play(runAnim, true);
       }
     }
   }
@@ -489,8 +538,14 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setFlipX(true);
     }
 
-    if (this.anims.currentAnim?.key !== 'red-warrior-run') {
-      this.play('red-warrior-run', true);
+    let runAnim = 'red-warrior-run';
+    if (this.baseUnit === 'lancer') {
+      const color = this.archetype.color || 'red';
+      runAnim = `${color}-lancer-run`;
+    }
+
+    if (this.anims.currentAnim?.key !== runAnim) {
+      this.play(runAnim, true);
     }
   }
 
@@ -499,11 +554,25 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.facingDirection = player.x > this.x ? 1 : -1;
     this.setFlipX(this.facingDirection < 0);
 
-    if (this.baseUnit === 'warrior') {
+    if (this.baseUnit === 'warrior' || this.baseUnit === 'lancer') {
       if (!this.isAttacking) {
         this.isAttacking = true;
-        this.play('red-warrior-attack1', true);
-        this.attackCooldown = 1500;
+
+        // Determine animation based on unit type
+        let attackAnim, idleAnim, cooldown;
+        if (this.baseUnit === 'lancer') {
+          const color = this.archetype.color || 'red';
+          attackAnim = `${color}-lancer-attack`;
+          idleAnim = `${color}-lancer-idle`;
+          cooldown = 1200; // Slightly faster than warriors
+        } else {
+          attackAnim = 'red-warrior-attack1';
+          idleAnim = 'red-warrior-idle';
+          cooldown = 1500;
+        }
+
+        this.play(attackAnim, true);
+        this.attackCooldown = cooldown;
 
         this.scene.time.delayedCall(200, () => {
           if (this.active && player && player.active) {
@@ -516,7 +585,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.once('animationcomplete', () => {
           if (this.active) {
-            this.play('red-warrior-idle');
+            this.play(idleAnim);
             this.isAttacking = false;
           }
         });
