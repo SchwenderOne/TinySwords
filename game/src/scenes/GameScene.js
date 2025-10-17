@@ -452,22 +452,9 @@ export default class GameScene extends Phaser.Scene {
     // Characters get +1 depth boost to always render in front of buildings at same Y position
 
     // Set player depth based on Y position
-    if (this.player) {
+    if (this.player && this.player.active) {
       this.player.setDepth(this.player.y + 1);
       if (this.player.shadow) this.player.shadow.setDepth(0);
-
-      // Debug: Log player info occasionally
-      if (Math.random() < 0.01) {
-        console.log('Player:', {
-          y: this.player.y,
-          depth: this.player.y + 1
-        });
-      }
-    }
-
-    if (this.monk) {
-      this.monk.setDepth(this.monk.y + 1);
-      if (this.monk.shadow) this.monk.shadow.setDepth(0);
     }
 
     // Set enemy depths based on Y position (also with +1 boost)
@@ -485,15 +472,6 @@ export default class GameScene extends Phaser.Scene {
     this.buildings.forEach(building => {
       const buildingDepth = building.y - building.displayHeight;
       building.setDepth(buildingDepth);
-
-      // Debug: Log first building's info
-      if (building === this.buildings[0] && Math.random() < 0.01) {
-        console.log('Building:', {
-          y: building.y,
-          height: building.displayHeight,
-          depth: buildingDepth
-        });
-      }
     });
 
     // Set decoration depths based on Y position minus height
@@ -512,8 +490,8 @@ export default class GameScene extends Phaser.Scene {
       return false;
     });
 
-    // Check game over (both characters dead)
-    if (!this.player.active && !this.monk.active) {
+    // Check game over (player died)
+    if (!this.player.active) {
       this.gameOver();
     }
 

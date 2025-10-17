@@ -42,7 +42,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // Setup physics
     // Smaller collision box for tighter, more accurate collisions
     this.body.setSize(60, 80);
-    this.body.setOffset(66, 90);
+    this.body.setOffset(66, 50); // Y offset: 90 - 40 (half height) = 50
     
     // Add shadow
     this.shadow = scene.add.image(x, y + 60, 'shadow');
@@ -413,9 +413,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   die() {
     // Grant XP to active character
     const xpAmount = this.type === 'warrior' ? 50 : 30; // Warriors give more XP
-    const activeChar = this.scene.currentCharacter === 'warrior' ? this.scene.player : this.scene.monk;
-    if (activeChar && activeChar.active) {
-      activeChar.gainXP(xpAmount);
+    // Grant XP to player
+    if (this.scene.player && this.scene.player.active) {
+      this.scene.player.gainXP(xpAmount);
     }
     
     // 30% chance to drop health potion
