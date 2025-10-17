@@ -32,6 +32,10 @@ export default class AllyMonk extends AllyCharacter {
     this.healRange = stats.healRange;
     this.lastHealCheck = 0;
     
+    // Set attack damage for monks
+    this.attackDamage = 15; // Monks now attack with ability 2
+    this.attackRange = 120; // Attack range for slash effect
+    
     // Create animations
     this.createAnimations();
     
@@ -62,7 +66,17 @@ export default class AllyMonk extends AllyCharacter {
       });
     }
     
-    // Attack animation (used for healing) - 4 frames @ 10 FPS
+    // Attack animation - 4 frames @ 10 FPS
+    if (!anims.exists('blue-monk-attack')) {
+      anims.create({
+        key: 'blue-monk-attack',
+        frames: anims.generateFrameNumbers('blue-monk-attack', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: 0
+      });
+    }
+    
+    // Heal animation (same as attack) - 4 frames @ 10 FPS
     if (!anims.exists('blue-monk-heal')) {
       anims.create({
         key: 'blue-monk-heal',
@@ -77,11 +91,25 @@ export default class AllyMonk extends AllyCharacter {
    * Override updateAI - monks have different behavior
    */
   updateAI() {
-    // Always follow leader
-    this.followLeader();
+    // Check if leader needs healing first (priority)
+    const leaderNeedsHealing = this.leader && !this.leader.isDead && 
+                               (this.leader.health / this.leader.maxHealth) < 1.0;
     
-    // Check if leader needs healing
-    this.checkForHealing();
+    if (leaderNeedsHealing && this.attackCooldown <= 0) {
+      // Healing has priority over combat - force back to follow state
+      this.aiState = 'follow';
+      this.checkForHealing();
+      // Don't do anything else this frame
+      return;
+    }
+    
+    // Standard AI behavior when not healing
+    if (this.aiState === 'follow') {
+      this.followLeader();
+      this.checkForEnemies();
+    } else if (this.aiState === 'engage' && this.target) {
+      this.engageTarget();
+    }
   }
   
   /**
@@ -163,10 +191,92 @@ export default class AllyMonk extends AllyCharacter {
   }
   
   /**
-   * Override performAttack - monks don't attack enemies
+   * Override performAttack - monks attack with slash2-effect (ability 2)
    */
   performAttack() {
-    // Monks don't attack - they only heal
+    if (!this.target || this.target.isDead || this.isAttacking) return;
+    
+    this.isAttacking = true;
+    this.attackCooldown = this.attackCooldownMax;
+    
+    // Stop movement during attack
+    this.body.setVelocity(0, 0);
+    
+    // Play attack animation
+    this.play('blue-monk-attack');
+    
+    // Calculate facing angle towards target
+    const facingAngle = Math.atan2(
+      this.target.y - this.y,
+      this.target.x - this.x
+    );
+    
+    // Spawn slash2-effect (ability 2 - Diagonal Strike)
+    this.scene.time.delayedCall(200, () => {
+      if (this.active && this.target && !this.target.isDead) {
+        // Calculate position in front of monk
+        const baseOffsetDistance = 30;
+        const offsetX = Math.cos(facingAngle) * baseOffsetDistance;
+        const offsetY = Math.sin(facingAngle) * baseOffsetDistance;
+        
+        // Create slash effect
+        const slashSprite = this.scene.add.sprite(
+          this.x + offsetX,
+          this.y + offsetY,
+          'slash2-frame1'
+        );
+        
+        // Convert facing angle to degrees and apply rotation
+        const facingDegrees = Phaser.Math.RadToDeg(facingAngle);
+        
+        slashSprite.setScale(0.3);
+        slashSprite.setAngle(facingDegrees - 90); // Rotated 90° counter-clockwise like ability 2, plus facing direction
+        slashSprite.setDepth(this.y + 100);
+        slashSprite.setAlpha(0.8);
+        slashSprite.setBlendMode(Phaser.BlendModes.ADD);
+        
+        // Play animation with double speed like ability 2
+        const anim = this.scene.anims.get('slash2-effect');
+        if (anim) {
+          const animConfig = {
+            key: 'slash2-effect_monk_' + Date.now(),
+            frames: anim.frames.map(f => ({ key: f.textureKey })),
+            frameRate: anim.frameRate * 2.0, // Double speed
+            repeat: 0
+          };
+          this.scene.anims.create(animConfig);
+          slashSprite.play(animConfig.key);
+          
+          slashSprite.once('animationcomplete', () => {
+            this.scene.anims.remove(animConfig.key);
+            slashSprite.destroy();
+          });
+        } else {
+          slashSprite.play('slash2-effect');
+          slashSprite.once('animationcomplete', () => {
+            slashSprite.destroy();
+          });
+        }
+        
+        // Deal damage
+        const distance = Phaser.Math.Distance.Between(
+          this.x, this.y,
+          this.target.x, this.target.y
+        );
+        
+        if (distance <= this.attackRange) {
+          this.target.takeDamage(this.attackDamage);
+        }
+      }
+    });
+    
+    // End attack state when animation completes
+    this.once('animationcomplete', () => {
+      this.isAttacking = false;
+      if (this.active) {
+        this.playIdleAnimation();
+      }
+    });
   }
 }
 

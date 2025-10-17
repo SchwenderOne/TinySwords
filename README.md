@@ -4,12 +4,12 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 
 ![Game Screenshot](map-2.png)
 
-**Status:** 🚧 In Development - Phase 1, 2, 3 Complete  
-**Play Now:** `cd game && npm run dev` → http://localhost:3000/
+**Status:** 🚧 In Development - Phase 1, 2, 3, 4 Complete  
+**Play Now:** `cd game && npm run dev` → http://localhost:3002/
 
 ---
 
-## 🎮 Current Features (v0.3.0)
+## 🎮 Current Features (v0.4.1)
 
 ### Core Gameplay
 - **Single Hero:** Play as the Warrior with melee combat and guard ability
@@ -24,12 +24,28 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 - **Smart AI:** Allies follow you, detect enemies, and return when targets are lost
 - **Visual Distinction:** Blue units contrast with your black warrior and red enemies
 
-### Interactive Buildings (NEW - Phase 3)
+### Interactive Buildings (Phase 3)
 - **6 Interactive Buildings:** 4 Houses + 2 Towers across the island
 - **Press E to Spawn:** Houses spawn warriors, towers spawn monks
 - **20-Second Cooldown:** Strategic timing for ally spawning
 - **Visual Feedback:** Proximity prompts, cooldown bars, particle effects
 - **Survivors-Like Gameplay:** Build your army as you progress!
+
+### Ability System (Phase 4 - Enhanced)
+- **10 Unique Abilities:** Unlocked from the start for testing
+- **Number Keys (1-0):** Each ability has distinct visuals and effects
+- **Slash Effects:** 10 different animated slash effects
+- **Direction-Based Rotation:** All slashes rotate to match facing direction
+- **Varied Mechanics:** Multi-hit combos, chain explosions, AOE attacks
+  - Abilities 4, 9: Multi-hit at same position
+  - Abilities 8, 10: 5-hit chain explosions
+- **Visual Customization:** Each ability has unique size, speed, and positioning
+
+### Debug Menu (NEW)
+- **ESC Key Menu:** Pause menu for testing and configuration
+- **Toggle Enemies:** Disable enemy spawning for testing
+- **Toggle Cooldowns:** Remove ability cooldowns for rapid testing
+- **Perfect for Testing:** Test abilities and features without interruption
 
 ### Progression
 - **XP Rewards:** +50 XP (warriors), +30 XP (archers)
@@ -52,6 +68,8 @@ A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, 
 | **SPACE** | Attack (direction based on movement) |
 | **SHIFT** | Guard (50% damage reduction) |
 | **E** | Interact with buildings (spawn allies) |
+| **1-0** | Use abilities (10 unique slash effects) |
+| **ESC** | Open debug menu (toggle enemies/cooldowns) |
 | **R** | Restart game (after death/victory) |
 
 ---
@@ -109,7 +127,7 @@ Wave 5: 11 enemies (6 warriors, 5 archers)
 
 ### Ally Types
 - **Blue Warriors:** Melee allies, auto-engage enemies (80 HP, 12 damage)
-- **Blue Monks:** Healer allies, auto-heal player when wounded (60 HP, 20 heal)
+- **Blue Monks:** Combat healers, heal player when wounded OR attack enemies (60 HP, 15 damage, 20 heal, slash2-effect)
 
 ### Strategy Tips
 - **Early Game:** Spawn allies from buildings before waves get harder
@@ -119,6 +137,8 @@ Wave 5: 11 enemies (6 warriors, 5 archers)
 - **Guard Usage:** Use SHIFT when surrounded, even with allies
 - **Health Management:** Monks auto-heal + 30% potion drops = survivability
 - **Leveling:** Level up fully restores health and boosts stats
+- **Abilities:** Use 1-0 for powerful slash attacks with unique effects
+- **Testing:** Press ESC to disable enemies/cooldowns for ability testing
 
 ---
 
@@ -168,13 +188,7 @@ Assets/                         # Source art files
 
 ## 🚧 Upcoming Features
 
-### Phase 4: Ability System (Next)
-- Unlock powerful abilities at levels 3, 5, 8, 10
-- Power Slash, Whirlwind, Battle Charge, Titan Strike
-- Number key bindings (1-4)
-- Slash effect animations
-
-### Phase 5: Enemy Tuning
+### Phase 5: Enemy Tuning (Next)
 - Balance difficulty with ally support
 - Adjust enemy counts and stats
 - Test wave progression
@@ -252,6 +266,6 @@ Created by [@SchwenderOne](https://github.com/SchwenderOne)
 
 ---
 
-**Current Version:** v0.3.0  
+**Current Version:** v0.4.1  
 **Last Updated:** October 17, 2025  
-**Status:** ✅ Phase 1, 2, 3 Complete → 🚧 Phase 4 Next
+**Status:** ✅ Phase 1, 2, 3, 4 Complete + Enhanced → 🚧 Phase 5 Next

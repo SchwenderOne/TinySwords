@@ -23,6 +23,7 @@ export default class Player extends BaseCharacter {
     this.lastAttackType = 'attack1';
     this.lastMovementX = 0;
     this.lastMovementY = 0;
+    this.lastFacingAngle = 0; // Track last facing direction for abilities
     
     // Setup physics (override base offset for player)
     this.setCollideWorldBounds(false); // We handle collision manually
@@ -175,6 +176,11 @@ export default class Player extends BaseCharacter {
         this.lastMovementX = 0;
         this.lastMovementY = 1;
       }
+    }
+    
+    // Update last facing angle for abilities when moving
+    if (velocityX !== 0 || velocityY !== 0) {
+      this.lastFacingAngle = Math.atan2(velocityY, velocityX);
     }
     
     // Normalize diagonal movement

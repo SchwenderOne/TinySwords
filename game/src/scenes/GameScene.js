@@ -6,6 +6,7 @@ import HealthPotion from '../entities/HealthPotion.js';
 import AllyWarrior from '../entities/AllyWarrior.js';
 import AllyMonk from '../entities/AllyMonk.js';
 import InteractiveBuilding from '../entities/InteractiveBuilding.js';
+import AbilitySystem from '../systems/AbilitySystem.js';
 import { UIBars } from '../utils/UIBars.js';
 import { GameBalance } from '../config/GameBalance.js';
 
@@ -21,6 +22,11 @@ export default class GameScene extends Phaser.Scene {
     
     // Interactive buildings
     this.interactiveBuildings = [];
+    
+    // Debug/Testing flags
+    this.enemiesEnabled = true;
+    this.abilityCooldownsEnabled = true;
+    this.menuOpen = false;
   }
 
   create() {
@@ -58,6 +64,9 @@ export default class GameScene extends Phaser.Scene {
     
     // Create player (warrior only)
     this.player = new Player(this, this.spawnX, this.spawnY, this.collisionMap);
+    
+    // Create ability system (after player is created)
+    this.abilitySystem = new AbilitySystem(this, this.player);
     
     // Make buildings interactive (now that player exists)
     this.makeBuildingsInteractive();
@@ -120,7 +129,7 @@ export default class GameScene extends Phaser.Scene {
     const tower1 = this.physics.add.staticImage(1850, 2150, 'building-tower');
     tower1.setOrigin(0.5, 1);
     tower1.setDepth(1);
-    tower1.body.setSize(75, 200); // Width: 75px, Height: 200px (bottom 78%)
+    tower1.body.setSize(75, 150); // Width: 75px, Height: 200px (bottom 78%)
     tower1.body.setOffset(27, -144); // offsetX=(128-75)/2=27, offsetY=56-200=-144 (flipped)
     this.buildingsGroup.add(tower1);
     this.buildings.push(tower1);
@@ -379,6 +388,266 @@ export default class GameScene extends Phaser.Scene {
     }
   }
   
+  createAbilityUI() {
+    // Create ability icons at bottom center of screen
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const startX = width / 2 - 250; // Center 10 abilities (50px each with spacing)
+    const y = height - 70;
+    
+    this.abilityIcons = [];
+    this.abilityCooldownOverlays = [];
+    this.abilityKeyTexts = [];
+    this.abilityCooldownTexts = [];
+    
+    const abilities = this.abilitySystem.getAllAbilities();
+    abilities.forEach((ability, index) => {
+      const x = startX + (index * 52);
+      
+      // Background
+      const bg = this.add.rectangle(x, y, 48, 48, 0x333333, 0.8);
+      bg.setStrokeStyle(2, 0x666666);
+      bg.setScrollFactor(0);
+      bg.setDepth(90);
+      
+      // Ability icon (placeholder - using colored rectangle)
+      const icon = this.add.rectangle(x, y, 44, 44, this.getAbilityColor(index), 0.9);
+      icon.setScrollFactor(0);
+      icon.setDepth(91);
+      this.abilityIcons.push(icon);
+      
+      // Cooldown overlay (dark rectangle that shrinks as cooldown decreases)
+      const cooldownOverlay = this.add.rectangle(x, y, 44, 44, 0x000000, 0.7);
+      cooldownOverlay.setScrollFactor(0);
+      cooldownOverlay.setDepth(92);
+      cooldownOverlay.setVisible(false);
+      this.abilityCooldownOverlays.push(cooldownOverlay);
+      
+      // Key binding text (1-0)
+      const keyText = this.add.text(x - 18, y - 18, (index + 1) % 10, {
+        font: 'bold 12px Arial',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      });
+      keyText.setScrollFactor(0);
+      keyText.setDepth(93);
+      this.abilityKeyTexts.push(keyText);
+      
+      // Cooldown timer text
+      const cooldownText = this.add.text(x, y, '', {
+        font: 'bold 14px Arial',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 3
+      });
+      cooldownText.setOrigin(0.5);
+      cooldownText.setScrollFactor(0);
+      cooldownText.setDepth(94);
+      cooldownText.setVisible(false);
+      this.abilityCooldownTexts.push(cooldownText);
+    });
+    
+    // Instructions text
+    const instructionText = this.add.text(width / 2, height - 25, 
+      'Press 1-0 to use abilities | Test all slash effects!', 
+      {
+        font: '12px Arial',
+        fill: '#ffff00',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    );
+    instructionText.setOrigin(0.5);
+    instructionText.setScrollFactor(0);
+    instructionText.setDepth(90);
+  }
+  
+  getAbilityColor(index) {
+    // Different colors for visual distinction
+    const colors = [
+      0xff4444, // Red
+      0xff8844, // Orange
+      0xffff44, // Yellow
+      0x44ff44, // Green
+      0x44ffff, // Cyan
+      0x4444ff, // Blue
+      0x8844ff, // Purple
+      0xff44ff, // Magenta
+      0xffaa44, // Amber
+      0xff4488  // Pink
+    ];
+    return colors[index % colors.length];
+  }
+  
+  createDebugMenu() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    // Semi-transparent background overlay
+    this.menuOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
+    this.menuOverlay.setScrollFactor(0);
+    this.menuOverlay.setDepth(200);
+    this.menuOverlay.setInteractive();
+    this.menuOverlay.setVisible(false);
+    
+    // Menu panel
+    this.menuPanel = this.add.rectangle(width / 2, height / 2, 400, 300, 0x222222, 1);
+    this.menuPanel.setStrokeStyle(3, 0x666666);
+    this.menuPanel.setScrollFactor(0);
+    this.menuPanel.setDepth(201);
+    this.menuPanel.setVisible(false);
+    
+    // Menu title
+    this.menuTitle = this.add.text(width / 2, height / 2 - 120, 'DEBUG MENU', {
+      font: 'bold 28px Arial',
+      fill: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4
+    });
+    this.menuTitle.setOrigin(0.5);
+    this.menuTitle.setScrollFactor(0);
+    this.menuTitle.setDepth(202);
+    this.menuTitle.setVisible(false);
+    
+    // Toggle enemies button
+    const button1Y = height / 2 - 60;
+    this.enemiesButton = this.add.rectangle(width / 2, button1Y, 300, 50, 0x44aa44, 1);
+    this.enemiesButton.setStrokeStyle(2, 0xffffff);
+    this.enemiesButton.setScrollFactor(0);
+    this.enemiesButton.setDepth(202);
+    this.enemiesButton.setInteractive();
+    this.enemiesButton.setVisible(false);
+    
+    this.enemiesButtonText = this.add.text(width / 2, button1Y, 'Enemies: ENABLED', {
+      font: 'bold 20px Arial',
+      fill: '#ffffff'
+    });
+    this.enemiesButtonText.setOrigin(0.5);
+    this.enemiesButtonText.setScrollFactor(0);
+    this.enemiesButtonText.setDepth(203);
+    this.enemiesButtonText.setVisible(false);
+    
+    // Button hover effect
+    this.enemiesButton.on('pointerover', () => {
+      this.enemiesButton.setFillStyle(this.enemiesEnabled ? 0x55cc55 : 0xdd5555);
+    });
+    
+    this.enemiesButton.on('pointerout', () => {
+      this.enemiesButton.setFillStyle(this.enemiesEnabled ? 0x44aa44 : 0xcc4444);
+    });
+    
+    // Button click handler
+    this.enemiesButton.on('pointerdown', () => {
+      this.toggleEnemies();
+    });
+    
+    // Toggle cooldowns button
+    const button2Y = height / 2 + 10;
+    this.cooldownsButton = this.add.rectangle(width / 2, button2Y, 300, 50, 0x44aa44, 1);
+    this.cooldownsButton.setStrokeStyle(2, 0xffffff);
+    this.cooldownsButton.setScrollFactor(0);
+    this.cooldownsButton.setDepth(202);
+    this.cooldownsButton.setInteractive();
+    this.cooldownsButton.setVisible(false);
+    
+    this.cooldownsButtonText = this.add.text(width / 2, button2Y, 'Cooldowns: ENABLED', {
+      font: 'bold 20px Arial',
+      fill: '#ffffff'
+    });
+    this.cooldownsButtonText.setOrigin(0.5);
+    this.cooldownsButtonText.setScrollFactor(0);
+    this.cooldownsButtonText.setDepth(203);
+    this.cooldownsButtonText.setVisible(false);
+    
+    // Button hover effect
+    this.cooldownsButton.on('pointerover', () => {
+      this.cooldownsButton.setFillStyle(this.abilityCooldownsEnabled ? 0x55cc55 : 0xdd5555);
+    });
+    
+    this.cooldownsButton.on('pointerout', () => {
+      this.cooldownsButton.setFillStyle(this.abilityCooldownsEnabled ? 0x44aa44 : 0xcc4444);
+    });
+    
+    // Button click handler
+    this.cooldownsButton.on('pointerdown', () => {
+      this.toggleCooldowns();
+    });
+    
+    // Close menu instruction
+    this.menuInstructions = this.add.text(width / 2, height / 2 + 100, 'Press ESC to close', {
+      font: '16px Arial',
+      fill: '#aaaaaa'
+    });
+    this.menuInstructions.setOrigin(0.5);
+    this.menuInstructions.setScrollFactor(0);
+    this.menuInstructions.setDepth(202);
+    this.menuInstructions.setVisible(false);
+    
+    // Group all menu elements
+    this.menuElements = [
+      this.menuOverlay,
+      this.menuPanel,
+      this.menuTitle,
+      this.enemiesButton,
+      this.enemiesButtonText,
+      this.cooldownsButton,
+      this.cooldownsButtonText,
+      this.menuInstructions
+    ];
+  }
+  
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+    
+    // Show/hide all menu elements
+    this.menuElements.forEach(element => {
+      element.setVisible(this.menuOpen);
+    });
+    
+    // Pause/unpause physics when menu is open
+    if (this.menuOpen) {
+      this.physics.pause();
+    } else {
+      this.physics.resume();
+    }
+  }
+  
+  toggleEnemies() {
+    this.enemiesEnabled = !this.enemiesEnabled;
+    
+    // Update button appearance
+    this.enemiesButton.setFillStyle(this.enemiesEnabled ? 0x44aa44 : 0xcc4444);
+    this.enemiesButtonText.setText(this.enemiesEnabled ? 'Enemies: ENABLED' : 'Enemies: DISABLED');
+    
+    // If disabling enemies, destroy all current enemies
+    if (!this.enemiesEnabled) {
+      this.enemies.getChildren().forEach(enemy => {
+        if (enemy.active) {
+          enemy.destroy();
+        }
+      });
+      this.enemies.clear(true, true);
+    }
+    
+    console.log(`Enemies ${this.enemiesEnabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+  
+  toggleCooldowns() {
+    this.abilityCooldownsEnabled = !this.abilityCooldownsEnabled;
+    
+    // Update button appearance
+    this.cooldownsButton.setFillStyle(this.abilityCooldownsEnabled ? 0x44aa44 : 0xcc4444);
+    this.cooldownsButtonText.setText(this.abilityCooldownsEnabled ? 'Cooldowns: ENABLED' : 'Cooldowns: DISABLED');
+    
+    // If disabling cooldowns, reset all ability cooldowns to 0
+    if (!this.abilityCooldownsEnabled && this.abilitySystem) {
+      this.abilitySystem.resetAllCooldowns();
+    }
+    
+    console.log(`Ability Cooldowns ${this.abilityCooldownsEnabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+  
   handleBuildingInteraction() {
     // Try to interact with each building
     for (const building of this.interactiveBuildings) {
@@ -390,9 +659,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createUI() {
-    // Controls text
+    // Controls text (updated to include abilities and menu)
     const controlsText = this.add.text(10, 10, 
-      'Controls:\nWASD - Move\nSPACE - Attack\nSHIFT - Guard\nE - Interact with Buildings', 
+      'Controls:\nWASD - Move | SPACE - Attack | SHIFT - Guard\nE - Interact | 1-0 - Abilities | ESC - Menu', 
       {
         font: '14px Arial',
         fill: '#ffffff',
@@ -408,6 +677,11 @@ export default class GameScene extends Phaser.Scene {
       this.handleBuildingInteraction();
     });
     
+    // Add ESC key menu handler
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.toggleMenu();
+    });
+    
     // Player health text
     this.healthText = this.add.text(10, 140, '', {
       font: '16px Arial',
@@ -420,6 +694,13 @@ export default class GameScene extends Phaser.Scene {
     
     // Initialize DOM-based UI bars
     this.uiBars = new UIBars();
+    
+    // Create ability UI at bottom of screen
+    this.createAbilityUI();
+    
+    // Create pause/debug menu (hidden by default)
+    this.createDebugMenu();
+    
     this.uiBars.show();
     
     // Wave counter (top center)
@@ -437,6 +718,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   startWave() {
+    // Skip spawning if enemies are disabled
+    if (!this.enemiesEnabled) {
+      console.log('Wave skipped - enemies disabled');
+      this.waveInProgress = false;
+      return;
+    }
+    
     this.waveInProgress = true;
     this.betweenWaves = false;
     
@@ -528,6 +816,34 @@ export default class GameScene extends Phaser.Scene {
       
       // Update wave counter
       this.waveText.setText(`Wave ${this.currentWave}/${this.maxWaves}`);
+    }
+    
+    // Update ability system (handles cooldowns and input)
+    if (this.abilitySystem) {
+      this.abilitySystem.update(time, delta);
+      
+      // Update ability UI cooldowns
+      const abilities = this.abilitySystem.getAllAbilities();
+      abilities.forEach((ability, index) => {
+        if (this.abilityCooldownOverlays && this.abilityCooldownOverlays[index]) {
+          if (ability.currentCooldown > 0) {
+            // Show cooldown overlay
+            this.abilityCooldownOverlays[index].setVisible(true);
+            
+            // Scale overlay based on cooldown remaining
+            const cooldownPercent = ability.currentCooldown / ability.cooldown;
+            this.abilityCooldownOverlays[index].setScale(1, cooldownPercent);
+            
+            // Show cooldown timer text
+            this.abilityCooldownTexts[index].setVisible(true);
+            this.abilityCooldownTexts[index].setText((ability.currentCooldown / 1000).toFixed(1));
+          } else {
+            // Hide cooldown overlay
+            this.abilityCooldownOverlays[index].setVisible(false);
+            this.abilityCooldownTexts[index].setVisible(false);
+          }
+        }
+      });
     }
     
     // Update enemies (they target player)

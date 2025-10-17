@@ -1,12 +1,12 @@
 # 🎮 TinySwords - Current State
 
-**Last Updated:** October 17, 2025 (Post-Phase 3)  
-**Status:** ✅ Phase 1, 2, 3 Complete → Ready for Phase 4  
-**Dev Server:** `cd game && npm run dev` → http://localhost:3000/
+**Last Updated:** October 17, 2025 (Phase 4 Enhanced)  
+**Status:** ✅ Phase 1, 2, 3, 4 Complete + Enhancements → Ready for Phase 5  
+**Dev Server:** `cd game && npm run dev` → http://localhost:3003/
 
 ---
 
-## 📦 What's Implemented (v0.3.0)
+## 📦 What's Implemented (v0.4.0)
 
 ### ✅ Core Systems
 - **Single Hero Gameplay:** Warrior only (character switching removed)
@@ -40,7 +40,41 @@
   - Allies spawn in front of buildings
   - Particle effects (blue for warriors, green for monks)
 
-### 🏗️ Architecture (Post-Phase 3)
+### ✅ Ability System (Phase 4)
+- **10 Unique Abilities:**
+  - All unlocked from start for testing
+  - Bound to number keys 1-0
+  - Each with unique visual slash effect
+- **Visual Effects:**
+  - 10 different slash animations loaded
+  - Custom positioning, sizing, rotation per ability
+  - **Direction-based rotation** - all slashes rotate to match facing direction
+  - Multi-hit combos (abilities 4, 7, 9)
+  - Chain explosions (abilities 8, 10)
+    - Ability 8: 5-hit chain in line
+    - Ability 9: 3 quick hits at same position
+    - Ability 10: 5-hit chain in line
+- **Mechanics:**
+  - Player tracks last facing angle for precise ability direction
+  - Cooldown system per ability
+  - Damage calculations with AOE support
+  - Range-based targeting
+  - Visual feedback on use
+
+### ✅ Debug Menu (Phase 4)
+- **ESC Key Menu:**
+  - Pause menu with overlay
+  - Physics pause when open
+- **Toggle Features:**
+  - Disable/Enable Enemies
+  - Disable/Enable Ability Cooldowns
+- **Visual Design:**
+  - 2 interactive buttons
+  - Green (enabled) / Red (disabled) states
+  - Hover effects
+  - Clean centered layout
+
+### 🏗️ Architecture (Post-Phase 4)
 ```
 BaseCharacter (abstract)
   ├── Player (Warrior)
@@ -53,15 +87,21 @@ InteractiveBuilding
   ├── Houses (spawn warriors)
   └── Towers (spawn monks)
 
+AbilitySystem (NEW)
+  ├── 10 Abilities with effects
+  ├── Cooldown management
+  └── Visual effect spawning
+
 GameBalance.js (centralized config)
-GameScene (682 lines, manages all entities)
+GameScene (998 lines, manages all entities + debug menu)
 ```
 
 ### 📊 Code Quality
 - **0 linter errors**
 - **Centralized config** (GameBalance.js with ally/building values)
-- **Clean architecture** (AllyCharacter extends BaseCharacter)
+- **Clean architecture** (BaseCharacter → Player/Allies/Enemies, AbilitySystem)
 - **0 code duplication**
+- **All 10 slash effects loaded** (100+ animation frames)
 
 ---
 
@@ -83,11 +123,14 @@ GameScene (682 lines, manages all entities)
   - Follow distance: 120px from player
   
 - **Ally Monk (Blue):**
-  - 60 HP, 20 heal amount, 140 speed
+  - 60 HP, 15 damage, 20 heal amount, 140 speed
+  - **Attack with slash2-effect** (Diagonal Strike)
+  - Attack range: 120px
   - Heal range: 160px
   - Heal cooldown: 4 seconds
   - Follow distance: 100px from player
-  - Auto-heals player when wounded
+  - **Priority: Healing player > Attacking enemies**
+  - Attack rotation matches facing direction
 
 ### Enemies
 - **Red Warrior:** 100 HP, melee, patrol/chase/attack AI
@@ -136,9 +179,11 @@ game/src/
 │   ├── InteractiveBuilding.js   [Building interaction system]
 │   ├── Enemy.js                 [AI opponents]
 │   └── HealthPotion.js          [Collectible item]
+├── systems/
+│   └── AbilitySystem.js         [10 abilities + cooldowns + effects]
 ├── scenes/
-│   ├── BootScene.js             [Asset loading + blue unit sprites]
-│   └── GameScene.js             [Main game loop + building management]
+│   ├── BootScene.js             [Asset loading + slash effects]
+│   └── GameScene.js             [Main game loop + debug menu]
 └── utils/
     ├── CollisionMap.js          [Terrain detection]
     ├── FloatingText.js          [Visual feedback]
@@ -193,23 +238,20 @@ Building interaction system:
 
 **None currently.** All features working as intended:
 - ✅ Allies follow and engage properly
+- ✅ Monks heal AND attack with slash effects
 - ✅ Building interactions work smoothly
 - ✅ Cooldowns track correctly
+- ✅ All 10 abilities working with unique effects
+- ✅ Abilities rotate to match facing direction
+- ✅ Debug menu functions properly
 - ✅ No console errors
-- ✅ Performance stable with 6 allies + 10 enemies
+- ✅ Performance stable with 6 allies + 10 enemies + abilities
 
 ---
 
 ## 🚫 What's NOT Implemented Yet
 
-### Phase 4: Ability System
-- [ ] Load slash effect assets (10 variants)
-- [ ] AbilitySystem.js
-- [ ] Unlock at levels 3/5/8/10
-- [ ] Number key bindings (1-4)
-- [ ] Power Slash, Whirlwind, Battle Charge, Titan Strike
-
-### Phase 5: Enemy Tuning
+### Phase 5: Enemy Tuning (Next)
 - [ ] Test difficulty with full ally support
 - [ ] Adjust enemy counts/stats
 - [ ] Balance wave progression
@@ -229,6 +271,8 @@ Building interaction system:
 - **SPACE:** Attack
 - **SHIFT:** Guard
 - **E:** Interact with Buildings
+- **1-0:** Use Abilities (10 unique slash effects)
+- **ESC:** Open Debug Menu (toggle enemies/cooldowns)
 - **R:** Restart (on game over/victory)
 
 ### Objective
@@ -237,17 +281,20 @@ Survive 5 waves of enemies spawning from the castle gate!
 ### Strategy
 1. **Start of game:** Walk to houses/towers and press **E** to spawn allies
 2. **During waves:** Let allies help fight while you focus on enemies
-3. **After combat:** Use building cooldowns strategically
-4. **Healing:** Monks auto-heal you, or collect health potions (30% drop)
-5. **Leveling:** Kill enemies for XP → level up for stat boosts
+3. **Use abilities:** Press 1-0 for powerful slash attacks
+4. **After combat:** Use building cooldowns strategically
+5. **Healing:** Monks auto-heal you, or collect health potions (30% drop)
+6. **Leveling:** Kill enemies for XP → level up for stat boosts
 
 ### Tips
 - Spawn warriors early for combat support
 - Spawn at least one monk for healing
 - Buildings have 20s cooldown - plan accordingly
+- Use abilities for burst damage and crowd control
 - Guard (SHIFT) reduces damage by 50%
 - Allies follow you automatically - keep moving!
 - Attack in 4 directions based on movement
+- **Testing:** Press ESC to disable enemies/cooldowns
 
 ---
 
@@ -280,16 +327,17 @@ arcade: { debug: true }  // Shows collision boxes
 ## 📊 Git History
 
 ```bash
-3cf15f6 - feat: Phase 2 & 3 - AI Ally System and Interactive Buildings
-900ffe7 - Fix critical bugs from Phase 1 refactor
-14cbcfe - Phase 1: Foundation refactor complete
+[Latest] - feat: Phase 4 - Complete Ability System with 10 slash effects + Debug Menu
+3cf15f6  - feat: Phase 2 & 3 - AI Ally System and Interactive Buildings
+900ffe7  - Fix critical bugs from Phase 1 refactor
+14cbcfe  - Phase 1: Foundation refactor complete
 ```
 
 ---
 
 ## 🚀 Next Steps
 
-See `ROADMAP.md` for Phase 4 (Ability System) implementation plan.
+See `ROADMAP.md` for Phase 5 (Enemy Tuning) implementation plan.
 
 ---
 

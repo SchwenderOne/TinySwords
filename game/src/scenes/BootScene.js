@@ -214,11 +214,157 @@ export default class BootScene extends Phaser.Scene {
     this.load.image('rock2', '/assets/decorations/Rock2.png');
     this.load.image('rock3', '/assets/decorations/Rock3.png');
     this.load.image('rock4', '/assets/decorations/Rock4.png');
+    
+    // Load Slash Effects (1280x720 individual frames)
+    // Slash 1 - 12 frames
+    for (let i = 1; i <= 12; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash1-frame${i}`, `/assets/slash-effects/slash1/skash_${frameNum}.png`);
+    }
+    
+    // Slash 2 - 9 frames
+    for (let i = 1; i <= 9; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash2-frame${i}`, `/assets/slash-effects/slash2/slash2_${frameNum}.png`);
+    }
+    
+    // Slash 3 - 12 frames
+    for (let i = 1; i <= 12; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash3-frame${i}`, `/assets/slash-effects/slash3/slash3_${frameNum}.png`);
+    }
+    
+    // Slash 4 - 12 frames
+    for (let i = 1; i <= 12; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash4-frame${i}`, `/assets/slash-effects/slash4/slash4_${frameNum}.png`);
+    }
+    
+    // Slash 5 - 11 frames (special naming: slash5-animation_00.png)
+    for (let i = 0; i <= 10; i++) {
+      const frameNum = i.toString().padStart(2, '0');
+      this.load.image(`slash5-frame${i + 1}`, `/assets/slash-effects/slash5/slash5-animation_${frameNum}.png`);
+    }
+    
+    // Slash 6 - 11 frames
+    for (let i = 1; i <= 11; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash6-frame${i}`, `/assets/slash-effects/slash6/slash6_${frameNum}.png`);
+    }
+    
+    // Slash 7 - 6 frames
+    for (let i = 1; i <= 6; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash7-frame${i}`, `/assets/slash-effects/slash7/slash7_${frameNum}.png`);
+    }
+    
+    // Slash 8 - 8 frames
+    for (let i = 1; i <= 8; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash8-frame${i}`, `/assets/slash-effects/slash8/slash8_${frameNum}.png`);
+    }
+    
+    // Slash 9 - 9 frames
+    for (let i = 1; i <= 9; i++) {
+      const frameNum = i.toString().padStart(5, '0');
+      this.load.image(`slash9-frame${i}`, `/assets/slash-effects/slash9/slash9_${frameNum}.png`);
+    }
+    
+    // Slash 10 - 10 frames
+    for (let i = 0; i <= 9; i++) {
+      const frameNum = i.toString().padStart(2, '0');
+      this.load.image(`slash10-frame${i}`, `/assets/slash-effects/slash10/slash10.spine_${frameNum}.png`);
+    }
   }
 
   create() {
+    // Create animations for slash effects
+    this.createSlashAnimations();
+    
     // Start the main game scene
     this.scene.start('GameScene');
+  }
+  
+  createSlashAnimations() {
+    // Slash 1 - Quick horizontal slash
+    this.anims.create({
+      key: 'slash1-effect',
+      frames: Array.from({ length: 12 }, (_, i) => ({ key: `slash1-frame${i + 1}` })),
+      frameRate: 24,
+      repeat: 0
+    });
+    
+    // Slash 2 - Diagonal sweep
+    this.anims.create({
+      key: 'slash2-effect',
+      frames: Array.from({ length: 9 }, (_, i) => ({ key: `slash2-frame${i + 1}` })),
+      frameRate: 20,
+      repeat: 0
+    });
+    
+    // Slash 3 - Vertical strike
+    this.anims.create({
+      key: 'slash3-effect',
+      frames: Array.from({ length: 12 }, (_, i) => ({ key: `slash3-frame${i + 1}` })),
+      frameRate: 24,
+      repeat: 0
+    });
+    
+    // Slash 4 - Spinning slash
+    this.anims.create({
+      key: 'slash4-effect',
+      frames: Array.from({ length: 12 }, (_, i) => ({ key: `slash4-frame${i + 1}` })),
+      frameRate: 24,
+      repeat: 0
+    });
+    
+    // Slash 5 - Power strike
+    this.anims.create({
+      key: 'slash5-effect',
+      frames: Array.from({ length: 11 }, (_, i) => ({ key: `slash5-frame${i + 1}` })),
+      frameRate: 22,
+      repeat: 0
+    });
+    
+    // Slash 6 - Cross slash
+    this.anims.create({
+      key: 'slash6-effect',
+      frames: Array.from({ length: 11 }, (_, i) => ({ key: `slash6-frame${i + 1}` })),
+      frameRate: 22,
+      repeat: 0
+    });
+    
+    // Slash 7 - Quick jab
+    this.anims.create({
+      key: 'slash7-effect',
+      frames: Array.from({ length: 6 }, (_, i) => ({ key: `slash7-frame${i + 1}` })),
+      frameRate: 18,
+      repeat: 0
+    });
+    
+    // Slash 8 - Circular slash
+    this.anims.create({
+      key: 'slash8-effect',
+      frames: Array.from({ length: 8 }, (_, i) => ({ key: `slash8-frame${i + 1}` })),
+      frameRate: 20,
+      repeat: 0
+    });
+    
+    // Slash 9 - Wave slash
+    this.anims.create({
+      key: 'slash9-effect',
+      frames: Array.from({ length: 9 }, (_, i) => ({ key: `slash9-frame${i + 1}` })),
+      frameRate: 20,
+      repeat: 0
+    });
+    
+    // Slash 10 - Ultimate strike
+    this.anims.create({
+      key: 'slash10-effect',
+      frames: Array.from({ length: 10 }, (_, i) => ({ key: `slash10-frame${i}` })),
+      frameRate: 20,
+      repeat: 0
+    });
   }
 }
 
