@@ -36,6 +36,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.patrolPoints = [];
     this.currentPatrolIndex = 0;
     this.attackCooldown = 0;
+    this.isAttacking = false; // Track if currently in attack animation
     this.facingDirection = 1;
     
     // Setup physics
@@ -101,6 +102,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
           key: 'red-warrior-attack1',
           frames: anims.generateFrameNumbers('red-warrior-attack1', { start: 0, end: 3 }),
           frameRate: 12,
+          repeat: 0
+        });
+      }
+      
+      if (!anims.exists('red-warrior-guard')) {
+        anims.create({
+          key: 'red-warrior-guard',
+          frames: anims.generateFrameNumbers('red-warrior-guard', { start: 0, end: 3 }),
+          frameRate: 8,
           repeat: 0
         });
       }
@@ -180,6 +190,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (!player || !player.active) return;
     
     const distanceToPlayer = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+    
+    // Don't change state while attacking
+    if (this.isAttacking) {
+      return;
+    }
     
     // State transitions
     if (distanceToPlayer <= this.attackRange && this.attackCooldown <= 0) {
@@ -279,6 +294,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     
     // Attack
     if (this.enemyType === 'warrior') {
+      this.isAttacking = true;
       this.play('red-warrior-attack1');
       this.attackCooldown = 1000; // 1 second cooldown
       
@@ -296,10 +312,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.once('animationcomplete', () => {
         if (this.active) {
           this.play('red-warrior-idle');
+          this.isAttacking = false;
         }
       });
     } else {
       // Archer shoot
+      this.isAttacking = true;
       this.play('red-archer-shoot');
       this.attackCooldown = 2000; // 2 second cooldown
       
@@ -314,6 +332,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.once('animationcomplete', () => {
         if (this.active) {
           this.play('red-archer-idle');
+          this.isAttacking = false;
         }
       });
     }

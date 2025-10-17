@@ -115,6 +115,11 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 192
     });
     
+    this.load.spritesheet('red-warrior-guard', '/assets/red-warrior/Warrior_Guard.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
     // Load Red Archer sprites (Enemy)
     this.load.spritesheet('red-archer-idle', '/assets/red-archer/Archer_Idle.png', {
       frameWidth: 192,

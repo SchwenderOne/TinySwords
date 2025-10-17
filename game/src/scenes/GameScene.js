@@ -285,17 +285,17 @@ export default class GameScene extends Phaser.Scene {
     const healthBarWidth = 300;
     const healthBarHeight = 30;
     
-    this.charHealthBarBg = this.add.rectangle(10, 200, healthBarWidth, healthBarHeight, 0x000000);
+    this.charHealthBarBg = this.add.rectangle(20, 10, healthBarWidth, healthBarHeight, 0x000000);
     this.charHealthBarBg.setOrigin(0, 0);
     this.charHealthBarBg.setScrollFactor(0);
     this.charHealthBarBg.setDepth(100);
     
-    this.charHealthBarFill = this.add.rectangle(10, 200, healthBarWidth, healthBarHeight, 0x00ff00);
+    this.charHealthBarFill = this.add.rectangle(20, 10, healthBarWidth, healthBarHeight, 0x00ff00);
     this.charHealthBarFill.setOrigin(0, 0);
     this.charHealthBarFill.setScrollFactor(0);
     this.charHealthBarFill.setDepth(101);
     
-    this.charHealthText = this.add.text(160, 215, '', {
+    this.charHealthText = this.add.text(170, 25, '', {
       font: 'bold 18px Arial',
       fill: '#ffffff',
       stroke: '#000000',
