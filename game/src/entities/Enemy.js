@@ -49,6 +49,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.shadow.setAlpha(0.5);
     this.shadow.setDepth(0);
     
+    // Create health bar (above enemy)
+    this.healthBarBg = scene.add.rectangle(x, y - 100, 60, 6, 0x000000);
+    this.healthBarBg.setDepth(10);
+    
+    this.healthBarFill = scene.add.rectangle(x, y - 100, 60, 6, 0x00ff00);
+    this.healthBarFill.setOrigin(0, 0.5);
+    this.healthBarFill.setDepth(11);
+    this.healthBarFill.x = this.healthBarBg.x - 30; // Align to left of background
+    
     this.setDepth(2);
     
     // Create animations
@@ -62,9 +71,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // Play idle animation
     const idleAnim = type === 'warrior' ? 'red-warrior-idle' : 'red-archer-idle';
     this.play(idleAnim);
-    
-    // Health bar
-    this.createHealthBar();
   }
 
   createAnimations() {
@@ -130,35 +136,25 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     ];
   }
 
-  createHealthBar() {
-    const barWidth = 60;
-    const barHeight = 6;
-    
-    // Background
-    this.healthBarBg = this.scene.add.graphics();
-    this.healthBarBg.fillStyle(0x000000);
-    this.healthBarBg.fillRect(this.x - barWidth/2, this.y - 80, barWidth, barHeight);
-    this.healthBarBg.setDepth(10);
-    
-    // Health bar
-    this.healthBar = this.scene.add.graphics();
-    this.updateHealthBar();
-    this.healthBar.setDepth(10);
-  }
-
   updateHealthBar() {
-    const barWidth = 60;
-    const barHeight = 6;
-    const healthPercent = this.health / this.maxHealth;
+    // Update health bar position
+    this.healthBarBg.x = this.x;
+    this.healthBarBg.y = this.y - 100;
+    this.healthBarFill.x = this.x - 30;
+    this.healthBarFill.y = this.y - 100;
     
-    this.healthBar.clear();
-    this.healthBar.fillStyle(0xff0000);
-    this.healthBar.fillRect(this.x - barWidth/2, this.y - 80, barWidth * healthPercent, barHeight);
+    // Update health bar width based on current health
+    const healthPercent = Math.max(0, this.health / this.maxHealth);
+    this.healthBarFill.width = 60 * healthPercent;
     
-    // Update background position
-    this.healthBarBg.clear();
-    this.healthBarBg.fillStyle(0x000000);
-    this.healthBarBg.fillRect(this.x - barWidth/2, this.y - 80, barWidth, barHeight);
+    // Change color based on health percentage
+    if (healthPercent > 0.6) {
+      this.healthBarFill.setFillStyle(0x00ff00); // Green
+    } else if (healthPercent > 0.3) {
+      this.healthBarFill.setFillStyle(0xffff00); // Yellow
+    } else {
+      this.healthBarFill.setFillStyle(0xff0000); // Red
+    }
   }
 
   update(time, delta, player) {
@@ -403,7 +399,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setActive(false);
     this.setVisible(false);
     this.shadow.setVisible(false);
-    this.healthBar.setVisible(false);
+    this.healthBarFill.setVisible(false);
     this.healthBarBg.setVisible(false);
     
     // Remove from enemies group
@@ -416,8 +412,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.shadow) {
       this.shadow.destroy();
     }
-    if (this.healthBar) {
-      this.healthBar.destroy();
+    if (this.healthBarFill) {
+      this.healthBarFill.destroy();
     }
     if (this.healthBarBg) {
       this.healthBarBg.destroy();

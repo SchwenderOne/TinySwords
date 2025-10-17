@@ -272,6 +272,12 @@ export default class Monk extends Phaser.Physics.Arcade.Sprite {
   }
   
   levelUp() {
+    // Cap at level 10
+    if (this.level >= 10) {
+      this.xp = this.xpToNextLevel; // Cap XP at max
+      return;
+    }
+    
     this.level++;
     this.xp -= this.xpToNextLevel;
     this.xpToNextLevel = this.level * 100;
