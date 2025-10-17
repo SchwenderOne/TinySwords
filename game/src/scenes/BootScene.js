@@ -48,6 +48,11 @@ export default class BootScene extends Phaser.Scene {
     // Load shadow
     this.load.image('shadow', '/assets/Shadow.png');
     
+    // Load health/XP bar assets
+    this.load.image('health-bar-bg', '/assets/health-bar-bg.png');
+    this.load.image('health-bar-fill', '/assets/health-bar-fill.png');
+    this.load.image('xp-bar-fill', '/assets/xp-bar-fill.png');
+    
     // Load Black Warrior sprites (Player)
     this.load.spritesheet('black-warrior-idle', '/assets/black-warrior/Warrior_Idle.png', {
       frameWidth: 192,

@@ -281,29 +281,60 @@ export default class GameScene extends Phaser.Scene {
     this.characterText.setScrollFactor(0);
     this.characterText.setDepth(100);
     
-    // Character Health Bar (top left)
-    const healthBarWidth = 300;
-    const healthBarHeight = 30;
+    // Character Health Bar and XP Bar (top left) - using asset pack images
+    const barX = 15;
+    const barY = 15;
+    const barScale = 2.5; // Scale up the small bars
     
-    this.charHealthBarBg = this.add.rectangle(20, 10, healthBarWidth, healthBarHeight, 0x000000);
-    this.charHealthBarBg.setOrigin(0, 0);
-    this.charHealthBarBg.setScrollFactor(0);
-    this.charHealthBarBg.setDepth(100);
+    // Health Bar Background (empty bar frame)
+    this.healthBarBg = this.add.image(barX, barY, 'health-bar-bg');
+    this.healthBarBg.setOrigin(0, 0);
+    this.healthBarBg.setScale(barScale);
+    this.healthBarBg.setScrollFactor(0);
+    this.healthBarBg.setDepth(100);
     
-    this.charHealthBarFill = this.add.rectangle(20, 10, healthBarWidth, healthBarHeight, 0x00ff00);
-    this.charHealthBarFill.setOrigin(0, 0);
-    this.charHealthBarFill.setScrollFactor(0);
-    this.charHealthBarFill.setDepth(101);
+    // Health Bar Fill (red bar)
+    this.healthBarFill = this.add.image(barX, barY, 'health-bar-fill');
+    this.healthBarFill.setOrigin(0, 0);
+    this.healthBarFill.setScale(barScale);
+    this.healthBarFill.setScrollFactor(0);
+    this.healthBarFill.setDepth(101);
     
-    this.charHealthText = this.add.text(170, 25, '', {
-      font: 'bold 18px Arial',
+    // XP Bar Background
+    this.xpBarBg = this.add.image(barX, barY + 18, 'health-bar-bg');
+    this.xpBarBg.setOrigin(0, 0);
+    this.xpBarBg.setScale(barScale);
+    this.xpBarBg.setScrollFactor(0);
+    this.xpBarBg.setDepth(100);
+    
+    // XP Bar Fill (blue bar)
+    this.xpBarFillImage = this.add.image(barX, barY + 18, 'xp-bar-fill');
+    this.xpBarFillImage.setOrigin(0, 0);
+    this.xpBarFillImage.setScale(barScale);
+    this.xpBarFillImage.setScrollFactor(0);
+    this.xpBarFillImage.setDepth(101);
+    
+    // Health text overlay
+    this.charHealthText = this.add.text(barX + 60, barY + 5, '', {
+      font: 'bold 12px Arial',
       fill: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 2
     });
-    this.charHealthText.setOrigin(0.5);
+    this.charHealthText.setOrigin(0, 0);
     this.charHealthText.setScrollFactor(0);
     this.charHealthText.setDepth(102);
+    
+    // Level/XP text overlay
+    this.xpTextOverlay = this.add.text(barX + 60, barY + 23, '', {
+      font: 'bold 12px Arial',
+      fill: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2
+    });
+    this.xpTextOverlay.setOrigin(0, 0);
+    this.xpTextOverlay.setScrollFactor(0);
+    this.xpTextOverlay.setDepth(102);
     
     // Wave counter (top center)
     const width = this.cameras.main.width;
@@ -317,34 +348,6 @@ export default class GameScene extends Phaser.Scene {
     this.waveText.setScrollFactor(0);
     this.waveText.setDepth(100);
     
-    // XP Bar (bottom of screen)
-    this.xpBarBg = this.add.rectangle(10, this.cameras.main.height - 50, 300, 30, 0x000000);
-    this.xpBarBg.setOrigin(0, 0);
-    this.xpBarBg.setScrollFactor(0);
-    this.xpBarBg.setDepth(100);
-    
-    this.xpBar = this.add.rectangle(10, this.cameras.main.height - 50, 300, 30, 0xffff00);
-    this.xpBar.setOrigin(0, 0);
-    this.xpBar.setScrollFactor(0);
-    this.xpBar.setDepth(101);
-    
-    this.xpText = this.add.text(160, this.cameras.main.height - 35, '', {
-      font: 'bold 16px Arial',
-      fill: '#000000'
-    });
-    this.xpText.setOrigin(0.5);
-    this.xpText.setScrollFactor(0);
-    this.xpText.setDepth(102);
-    
-    // Level text (left of XP bar)
-    this.levelText = this.add.text(10, this.cameras.main.height - 80, '', {
-      font: 'bold 18px Arial',
-      fill: '#ffffff',
-      backgroundColor: '#000000aa',
-      padding: { x: 10, y: 5 }
-    });
-    this.levelText.setScrollFactor(0);
-    this.levelText.setDepth(100);
   }
 
   startWave() {
@@ -554,20 +557,20 @@ export default class GameScene extends Phaser.Scene {
       // Update health display
       this.healthText.setText(`HP: ${Math.max(0, activeChar.health)}/${activeChar.maxHealth}`);
       
-      // Update character health bar
+      // Update character health bar (crop image based on health percentage)
       const healthPercent = Math.max(0, Math.min(1, activeChar.health / activeChar.maxHealth));
-      this.charHealthBarFill.width = 300 * healthPercent;
+      this.healthBarFill.setScale(2.5 * healthPercent, 2.5);
       
-      // Change health bar color based on health percentage
-      if (healthPercent > 0.6) {
-        this.charHealthBarFill.setFillStyle(0x00ff00); // Green
-      } else if (healthPercent > 0.3) {
-        this.charHealthBarFill.setFillStyle(0xffff00); // Yellow
-      } else {
-        this.charHealthBarFill.setFillStyle(0xff0000); // Red
-      }
+      // Update health text
+      this.charHealthText.setText(`HP: ${Math.max(0, Math.round(activeChar.health))}/${activeChar.maxHealth}`);
       
-      this.charHealthText.setText(`${Math.max(0, Math.round(activeChar.health))}/${activeChar.maxHealth} HP`);
+      // Update XP bar (crop image based on XP percentage)
+      const xpPercent = Math.max(0, Math.min(1, activeChar.xp / activeChar.xpToNextLevel));
+      this.xpBarFillImage.setScale(2.5 * xpPercent, 2.5);
+      
+      // Update XP/Level text
+      const levelDisplay = activeChar.level >= 10 ? '10 (MAX)' : `${activeChar.level}`;
+      this.xpTextOverlay.setText(`LVL ${levelDisplay} - ${Math.round(activeChar.xp)}/${activeChar.xpToNextLevel} XP`);
       
       // Update character indicator
       const charName = this.currentCharacter === 'warrior' ? 'Warrior' : 'Monk';
@@ -575,15 +578,6 @@ export default class GameScene extends Phaser.Scene {
       
       // Update wave counter
       this.waveText.setText(`Wave ${this.currentWave}/${this.maxWaves}`);
-      
-      // Update XP bar
-      const xpPercent = activeChar.xp / activeChar.xpToNextLevel;
-      this.xpBar.setScale(xpPercent, 1);
-      this.xpText.setText(`${Math.round(activeChar.xp)}/${activeChar.xpToNextLevel} XP`);
-      
-      // Cap level display at 10
-      const levelDisplay = activeChar.level >= 10 ? '10 (MAX)' : activeChar.level;
-      this.levelText.setText(`Level ${levelDisplay}`);
     }
     
     // Update enemies (they target active character)

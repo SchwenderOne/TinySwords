@@ -22,6 +22,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.attackCooldown = 0;
     this.lastAttackType = 'attack1';
     this.facingDirection = 1; // 1 = right, -1 = left
+    this.facingVertical = 0; // 1 = down, -1 = up, 0 = none
+    this.lastMovementX = 0;
+    this.lastMovementY = 0;
     
     // XP and Leveling
     this.level = 1;
@@ -158,20 +161,37 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     let velocityX = 0;
     let velocityY = 0;
     
+    // Track movement for attack direction
     if (this.keys.A.isDown) {
       velocityX = -this.moveSpeed;
       this.facingDirection = -1;
       this.setFlipX(true);
+      this.lastMovementX = -1;
+      this.lastMovementY = 0;
     } else if (this.keys.D.isDown) {
       velocityX = this.moveSpeed;
       this.facingDirection = 1;
       this.setFlipX(false);
+      this.lastMovementX = 1;
+      this.lastMovementY = 0;
     }
     
     if (this.keys.W.isDown) {
       velocityY = -this.moveSpeed;
+      this.facingVertical = -1;
+      // Only set vertical movement if no horizontal movement
+      if (velocityX === 0) {
+        this.lastMovementX = 0;
+        this.lastMovementY = -1;
+      }
     } else if (this.keys.S.isDown) {
       velocityY = this.moveSpeed;
+      this.facingVertical = 1;
+      // Only set vertical movement if no horizontal movement
+      if (velocityX === 0) {
+        this.lastMovementX = 0;
+        this.lastMovementY = 1;
+      }
     }
     
     // Normalize diagonal movement
@@ -220,9 +240,21 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   createHitbox() {
-    // Create a temporary hitbox sprite
-    const hitboxX = this.x + (this.facingDirection * 60); // 40px in front + some offset
-    const hitboxY = this.y;
+    // Determine hitbox position based on last movement direction
+    let hitboxX = this.x;
+    let hitboxY = this.y;
+    let pushDirection = this.facingDirection; // Default to horizontal
+    
+    // Prioritize the last movement direction for attack
+    if (this.lastMovementY !== 0) {
+      // Vertical attack (up or down)
+      hitboxY = this.y + (this.lastMovementY * 60);
+      pushDirection = this.lastMovementY; // Use vertical direction for knockback
+    } else {
+      // Horizontal attack (left or right)
+      hitboxX = this.x + (this.lastMovementX * 60);
+      pushDirection = this.lastMovementX;
+    }
     
     const hitbox = this.scene.physics.add.sprite(hitboxX, hitboxY, null);
     hitbox.body.setSize(80, 80);
@@ -231,7 +263,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // Check overlap with enemies
     this.scene.physics.overlap(hitbox, this.scene.enemies, (hitbox, enemy) => {
       const damage = this.lastAttackType === 'attack1' ? 15 : 25;
-      enemy.takeDamage(damage, this.facingDirection);
+      enemy.takeDamage(damage, pushDirection);
     });
     
     // Destroy hitbox after brief moment
