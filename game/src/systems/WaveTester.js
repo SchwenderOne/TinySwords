@@ -67,7 +67,7 @@ export class WaveTester {
         return;
       }
 
-      const aliveEnemies = this.scene.enemies.children.filter(e => e.active);
+      const aliveEnemies = this.scene.enemies.getChildren().filter(e => e.active);
       const totalEnemies = aliveEnemies.length;
 
       this.enemyCountText.setText(`Enemies: ${totalEnemies}`);
@@ -134,7 +134,7 @@ export class WaveTester {
   }
 
   killAllEnemies() {
-    const enemies = this.scene.enemies.children.getArray();
+    const enemies = this.scene.enemies.getChildren();
     console.log(`💀 Killing ${enemies.length} enemies`);
 
     enemies.forEach(enemy => {
@@ -186,7 +186,7 @@ export class WaveTester {
   update() {
     // Update enemy count display
     if (this.instructionsText) {
-      const aliveEnemies = this.scene.enemies.children.filter(e => e.active);
+      const aliveEnemies = this.scene.enemies.getChildren().filter(e => e.active);
       this.enemyCountText.setText(`Enemies: ${aliveEnemies.length}`);
     }
   }
