@@ -18,7 +18,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.health = 100;
       this.maxHealth = 100;
       this.moveSpeed = 120;
-      this.attackRange = 60;
+      this.attackRange = 100; // Increased from 60 to 100 for better attack detection
       this.attackDamage = 10;
       this.detectionRange = 300;
     } else { // archer
@@ -174,9 +174,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // Update health bar position
     this.updateHealthBar();
     
-    // Update attack cooldown
+    // Update attack cooldown (delta is in milliseconds)
     if (this.attackCooldown > 0) {
       this.attackCooldown -= delta;
+      if (this.attackCooldown < 0) {
+        this.attackCooldown = 0;
+      }
     }
     
     // Don't update AI if dead
@@ -286,6 +289,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   attackTarget(player) {
+    // Stop moving
     this.body.setVelocity(0, 0);
     
     // Face the player
@@ -294,27 +298,31 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     
     // Attack
     if (this.enemyType === 'warrior') {
-      this.isAttacking = true;
-      this.play('red-warrior-attack1');
-      this.attackCooldown = 1000; // 1 second cooldown
-      
-      // Deal damage to player on frame 2
-      this.scene.time.delayedCall(166, () => {
-        // Only attack if both warrior and player are still alive
-        if (this.active && player && player.active) {
-          const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
-          if (distance <= this.attackRange) {
-            player.takeDamage(this.attackDamage);
+      // Only start attack if not currently attacking
+      if (!this.isAttacking) {
+        this.isAttacking = true;
+        this.play('red-warrior-attack1', true); // Force restart animation
+        this.attackCooldown = 1500; // 1.5 second cooldown
+        
+        // Deal damage to player on frame 2
+        this.scene.time.delayedCall(200, () => {
+          // Only attack if both warrior and player are still alive
+          if (this.active && player && player.active) {
+            const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+            if (distance <= this.attackRange) {
+              player.takeDamage(this.attackDamage);
+            }
           }
-        }
-      });
-      
-      this.once('animationcomplete', () => {
-        if (this.active) {
-          this.play('red-warrior-idle');
-          this.isAttacking = false;
-        }
-      });
+        });
+        
+        // Animation complete handler
+        this.once('animationcomplete', () => {
+          if (this.active) {
+            this.play('red-warrior-idle');
+            this.isAttacking = false;
+          }
+        });
+      }
     } else {
       // Archer shoot
       this.isAttacking = true;
