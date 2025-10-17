@@ -258,7 +258,7 @@ export const GameBalance = {
   // WAVE SYSTEM
   // ============================================================
   waves: {
-    maxWaves: 20,
+    maxWaves: 21,
     restPeriod: 5000, // 5 seconds between waves
     castleGatePosition: { x: 2310, y: 1850 }, // Front of castle
     spawnRadius: 150, // Radius around castle gate for spawns

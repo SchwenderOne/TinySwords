@@ -18,7 +18,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Wave system
     this.currentWave = 1;
-    this.maxWaves = 20; // Phase 5: Extended to 20 waves with 12 enemy archetypes
+    this.maxWaves = GameBalance.waves.maxWaves; // Read from GameBalance config
     this.waveInProgress = false;
     this.betweenWaves = false;
     

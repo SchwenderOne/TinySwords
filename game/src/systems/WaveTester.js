@@ -130,9 +130,10 @@ export class WaveTester {
           if (this.isTestMode && this.scene.currentWave < this.scene.maxWaves) {
             this.scene.nextWave();
           } else if (this.isTestMode && this.scene.currentWave >= this.scene.maxWaves) {
-            console.log('🎉 ALL 20 WAVES COMPLETED!');
+            const totalWaves = this.scene.maxWaves;
+            console.log(`🎉 ALL ${totalWaves} WAVES COMPLETED!`);
             this.isTestMode = false;
-            this.testModeText.setText('TEST MODE: OFF - ✅ ALL WAVES COMPLETE').setColor('#00ff00');
+            this.testModeText.setText(`TEST MODE: OFF - ✅ ALL ${totalWaves} WAVES COMPLETE`).setColor('#00ff00');
           }
         });
       }
@@ -153,7 +154,7 @@ export class WaveTester {
   fastForwardWaves() {
     // Ask user how many waves to skip
     const wavesToSkip = prompt(
-      `Current wave: ${this.scene.currentWave}/${this.scene.maxWaves}\n\nSkip to which wave? (1-20)`,
+      `Current wave: ${this.scene.currentWave}/${this.scene.maxWaves}\n\nSkip to which wave? (1-${this.scene.maxWaves})`,
       String(this.scene.currentWave + 5)
     );
 
