@@ -1,226 +1,217 @@
-# 🏰 TinySwords - Medieval Warriors Game
+# 🏰 TinySwords - Survivors-Like RPG
 
-A browser-based 2D action RPG built with Phaser 3, featuring medieval warriors battling on a pixelated island battlefield with wave-based combat, leveling system, and character switching.
+A browser-based 2D action RPG built with Phaser 3, featuring wave-based combat, AI allies, and ability progression. Survive waves of enemies spawning from the castle gate!
 
 ![Game Screenshot](map-2.png)
 
-## 🎮 Features
+**Status:** 🚧 In Development - Phase 1 Complete  
+**Play Now:** `cd game && npm run dev` → http://localhost:3002/
 
-- **Two Playable Characters:**
-  - **Warrior** - Melee combat specialist with sword attacks and guard ability (100 HP, 200 speed)
-  - **Monk** - Support healer with area-of-effect healing ability (80 HP, 175 speed)
+---
 
-- **Character Switching:** Press `ESC` to switch between characters mid-game via menu system
-- **Wave-Based Combat:** 5 waves of increasingly difficult enemies with rest periods
-- **Leveling System:** Gain XP from defeating enemies, level up (max level 10) to increase stats
-- **Dynamic Combat:** 
-  - 4-directional attacks (up, down, left, right)
-  - Real-time melee and ranged combat
-  - Enemy health bars displayed above units
-- **Health Potions:** 30% chance to drop from defeated enemies
-- **Visual Feedback:** 
-  - Floating damage/heal numbers
-  - Level-up effects
-  - XP gain notifications
-- **Environment:**
-  - Pixel-perfect collision detection
-  - Buildings (castle, houses, towers) with depth sorting
-  - Decorations (trees, bushes, rocks)
-- **Professional UI:** DOM-based health and XP bars with gradient styling
+## 🎮 Current Features (v0.2.0)
+
+### Core Gameplay
+- **Single Hero:** Play as the Warrior with melee combat and guard ability
+- **Wave Survival:** Survive 5 progressively difficult waves
+- **Leveling System:** Gain XP from kills, level up to 10 for stat boosts
+- **Strategic Combat:** 4-directional attacks, guard ability (50% damage reduction)
+- **Dynamic Spawns:** Enemies spawn from the castle gate in focused patterns
+
+### Progression
+- **XP Rewards:** +50 XP (warriors), +30 XP (archers)
+- **Level Benefits:** +20 HP, +5 damage per level
+- **Full Heal:** Restore to full health on level up
+
+### Environment
+- **Pixel-Perfect Collision:** Stay on the green island
+- **Interactive Environment:** Buildings, trees with collision
+- **Visual Feedback:** Floating damage/heal numbers, level-up effects
+- **Professional UI:** DOM-based health and XP bars
+
+---
 
 ## 🕹️ Controls
 
-- **WASD** - Move character in all directions
-- **SPACE** - Attack (Warrior) / Heal (Monk)
-- **SHIFT** - Guard (Warrior only - reduces damage by 50%)
-- **ESC** - Open character selection menu
-- **R** - Restart game (when game over/victory)
+| Key | Action |
+|-----|--------|
+| **WASD** | Move in all directions |
+| **SPACE** | Attack (direction based on movement) |
+| **SHIFT** | Guard (50% damage reduction) |
+| **R** | Restart game (after death/victory) |
 
-## 🚀 Getting Started
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
+- Node.js (v16+)
+- npm
 
-- Node.js (v14 or higher)
-- npm or yarn
+### Installation & Run
 
-### Installation
-
-1. Clone the repository:
 ```bash
+# Clone repository
 git clone https://github.com/SchwenderOne/TinySwords.git
 cd TinySwords
-```
 
-2. Navigate to the game directory and install dependencies:
-```bash
+# Install dependencies
 cd game
 npm install
-```
 
-3. Start the development server:
-```bash
+# Start development server
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+Open browser to **http://localhost:3002/**
 
-### Building for Production
+### Production Build
 
 ```bash
 npm run build
 ```
 
-The built files will be in the `dist/` directory.
+Built files will be in `game/dist/`
 
-## 🎨 Assets
-
-This game uses the TinySwords pixel art asset pack, featuring:
-- 4 color variations of units (Black, Blue, Red, Yellow)
-- Multiple character types (Warrior, Monk, Archer, Lancer)
-- Buildings (Castle, Houses, Towers) with dynamic depth sorting
-- Terrain tiles and decorations (trees, bushes, rocks)
-- Water, environmental elements, and shadows
-
-## 🛠️ Technology Stack
-
-- **Phaser 3.90.0** - Game framework
-- **Vite 5.0** - Build tool and dev server
-- **JavaScript (ES6+)** - Programming language
-- **DOM/CSS** - UI overlay system for health/XP bars
-
-## 📁 Project Structure
-
-```
-TinySwords/
-├── game/                    # Game source code
-│   ├── src/
-│   │   ├── entities/       # Player, Monk, Enemy, HealthPotion classes
-│   │   ├── scenes/         # BootScene, GameScene
-│   │   ├── utils/          # CollisionMap, FloatingText, UIBars
-│   │   └── main.js         # Game configuration
-│   ├── public/assets/      # Game assets (sprites, maps, buildings, decorations)
-│   ├── index.html          # HTML with UI overlay
-│   └── package.json
-├── Units/                   # Original sprite sheets
-├── Buildings/              # Building assets
-├── Decorations/            # Environmental decorations
-├── Terrain/                # Terrain tiles
-└── map-2.png               # Game map (6496x6640px)
-```
+---
 
 ## 🎯 Gameplay
 
 ### Objective
-Survive 5 waves of enemies and achieve victory!
+Survive 5 waves of enemies spawning from the castle gate!
 
-### Wave System
-- **Wave 1:** 3 enemies (2 warriors, 1 archer)
-- **Wave 2:** 5 enemies (3 warriors, 2 archers)
-- **Wave 3:** 7 enemies (4 warriors, 3 archers)
-- **Wave 4:** 9 enemies (5 warriors, 4 archers)
-- **Wave 5:** 11 enemies (6 warriors, 5 archers)
-- Rest periods between waves to prepare
-
-### Leveling System
-- **Max Level:** 10
-- **XP Sources:** Defeat warriors (+50 XP) or archers (+30 XP)
-- **Level Benefits:**
-  - **Warrior:** +20 max HP, +5 attack damage per level
-  - **Monk:** +15 max HP, +5 heal amount per level
-  - Full heal on level up with particle effects
-
-### Characters
-
-**Warrior (Black)**
-- Health: 100 (+20 per level)
-- Speed: 200
-- Damage: 20 (+5 per level)
-- Special: Guard (50% damage reduction)
-- Attacks in all 4 directions
-
-**Monk (Black)**
-- Health: 80 (+15 per level)
-- Speed: 175
-- Damage: 0 (healing support)
-- Special: Area Heal (30 HP base +5 per level, 160 radius, cooldown)
-- Heals self and nearby allies
-
-### Enemies
-
-**Red Warrior**
-- Health: 100
-- Speed: 120
-- Damage: 10
-- Attack Range: 100
-- Behavior: Patrols, chases (300 range), melee attacks (1.5s cooldown)
-- Health bar displayed above unit
-
-**Red Archer**
-- Health: 60
-- Speed: 0 (stationary)
-- Damage: 8
-- Attack Range: 400
-- Behavior: Ranged attacks with arrows (2s cooldown)
-- Health bar displayed above unit
-
-### Items
-
-**Health Potion**
-- Restores: 30 HP
-- Drop Rate: 30% from defeated enemies
-- Auto-pickup on contact
-
-## 🔧 Development
-
-### Key Components
-
-- **UIBars.js** - DOM-based health/XP bar management system
-- **CollisionMap.js** - Pixel-perfect collision detection based on map terrain
-- **Player.js** - Warrior character controller with combat and leveling
-- **Monk.js** - Monk character controller with healing mechanics and leveling
-- **Enemy.js** - AI-controlled enemy with state machine (patrol/chase/attack) and health bars
-- **HealthPotion.js** - Collectible healing item
-- **FloatingText.js** - Damage, heal, XP, and level-up visual feedback
-- **GameScene.js** - Main game logic, wave system, character switching
-
-### UI System
-
-The game uses a hybrid approach:
-- **Canvas (Phaser):** Game world, characters, enemies, effects
-- **DOM Overlay:** Health bar (red), XP bar (blue), positioned top-left with 6px margins
-- **Benefits:** Always visible, smooth CSS transitions, no rendering issues
-
-### Combat System
-
-- **4-Directional Attacks:** Hitbox positioned based on last movement direction (WASD)
-- **Damage Feedback:** Floating numbers, tint effects, knockback
-- **Health Bars:** Real-time updates for all enemies above their sprites
-
-### Debug Mode
-
-To enable physics debug view, edit `game/src/main.js`:
-
-```javascript
-arcade: {
-  debug: true  // Shows collision boxes and physics bodies
-}
+### Wave Progression
+```
+Wave 1: 3 enemies  (2 warriors, 1 archer)
+Wave 2: 5 enemies  (3 warriors, 2 archers)
+Wave 3: 7 enemies  (4 warriors, 3 archers)
+Wave 4: 9 enemies  (5 warriors, 4 archers)
+Wave 5: 11 enemies (6 warriors, 5 archers)
 ```
 
-## 📝 License
+### Enemy Types
+- **Red Warriors:** Melee attackers, patrol and chase
+- **Red Archers:** Stationary ranged units (400px range)
 
-This project uses the TinySwords asset pack. Please check the original asset license for usage rights.
+### Tips
+- Enemies spawn from the castle at the north
+- Use guard (SHIFT) when surrounded
+- Health potions have 30% drop chance
+- Level up fully restores your health
+- Attack direction follows your last movement
 
-## 🤝 Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 🛠️ Technology Stack
+
+- **Engine:** Phaser 3.90.0
+- **Build Tool:** Vite 5.0 (fast HMR)
+- **Language:** JavaScript ES6+
+- **UI:** Hybrid Canvas + DOM overlay
+- **Physics:** Arcade (top-down, no gravity)
+
+---
+
+## 📁 Project Structure
+
+```
+game/
+├── src/
+│   ├── config/
+│   │   └── GameBalance.js      # Centralized game configuration
+│   ├── entities/
+│   │   ├── BaseCharacter.js    # Shared character logic
+│   │   ├── Player.js           # Warrior implementation
+│   │   ├── Enemy.js            # AI opponents
+│   │   └── HealthPotion.js     # Collectible items
+│   ├── scenes/
+│   │   ├── BootScene.js        # Asset loading
+│   │   └── GameScene.js        # Main game loop
+│   └── utils/
+│       ├── CollisionMap.js     # Terrain detection
+│       ├── FloatingText.js     # Visual feedback
+│       └── UIBars.js           # Health/XP bars
+└── public/assets/              # Sprites, map, buildings
+
+Assets/                         # Source art files
+├── Units/                      # Character sprites
+├── Buildings/                  # Structures
+├── Decorations/               # Trees, bushes, rocks
+└── Terrain/                    # Tilemap assets
+```
+
+---
+
+## 🚧 Upcoming Features
+
+### Phase 2: AI Allies (In Progress)
+- Spawn ally warriors and monks from buildings
+- AI companions that follow and assist in combat
+
+### Phase 3: Building Interactions
+- Interactive buildings with 30-second cooldowns
+- Strategic ally spawning system
+
+### Phase 4: Ability System
+- Unlock powerful abilities at levels 3, 5, 8, 10
+- New attacks from slash effect asset pack
+
+### Phase 5: Meta Progression
+- Persistent upgrades across runs
+- Currency system for permanent buffs
+
+See `ROADMAP.md` for detailed development plan.
+
+---
+
+## 🎨 Assets
+
+This game uses the TinySwords pixel art asset pack:
+- 4 color factions (Black, Blue, Red, Yellow)
+- Multiple unit types (Warrior, Monk, Archer, Lancer)
+- Buildings, decorations, terrain tiles
+- 6496×6640px island battlefield
+
+Additional assets:
+- Health Bar Asset Pack 2 by Adwit Rahman
+- Free Slash Effects Sprite Pack by Craftpix
+
+---
 
 ## 🐛 Known Issues
 
-- None currently
+**None currently.** All critical bugs have been fixed.
 
-## 📮 Contact
+Report issues on GitHub or see `CURRENT_STATE.md` for development status.
 
-Created by [@SchwenderOne](https://github.com/SchwenderOne)
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Check `CURRENT_STATE.md` for current implementation
+2. Read `TARGET_SPEC.md` for end goals
+3. Follow existing code patterns (BaseCharacter, GameBalance)
+4. Test thoroughly before submitting PR
+
+---
+
+## 📝 Development Documentation
+
+For developers and AI assistants:
+- **CURRENT_STATE.md** - Exact current implementation
+- **TARGET_SPEC.md** - End goals and vision
+- **ROADMAP.md** - Development phases and tasks
+- **.cursor/CONTEXT.md** - AI assistant quick reference
+
+---
+
+## 📄 License
+
+Game assets from TinySwords asset pack - check asset license for usage rights.  
+Game code: MIT License
+
+---
 
 ## 🙏 Acknowledgments
 
@@ -231,4 +222,12 @@ Created by [@SchwenderOne](https://github.com/SchwenderOne)
 
 ---
 
-**Current Status:** Fully playable with all core features implemented! ✅
+## 📮 Contact
+
+Created by [@SchwenderOne](https://github.com/SchwenderOne)
+
+---
+
+**Current Version:** v0.2.0-phase1  
+**Last Updated:** October 17, 2025  
+**Status:** ✅ Phase 1 Complete, 🚧 Phase 2 Starting
