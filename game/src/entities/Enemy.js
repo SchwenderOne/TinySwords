@@ -588,6 +588,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   createAoEExplosion(x, y, damage, radius) {
+    if (!this.scene || !this.active) return;
+
     // Visual effect
     const graphics = this.scene.make.graphics({ x: 0, y: 0, add: false });
     graphics.fillStyle(0xff8800, 0.3);
@@ -595,7 +597,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     graphics.setDepth(3);
 
     this.scene.add.existing(graphics);
-    this.scene.time.delayedCall(300, () => graphics.destroy());
+    this.scene.time.delayedCall(300, () => {
+      if (graphics && graphics.active) {
+        graphics.destroy();
+      }
+    });
 
     // Damage nearby player if in range
     const player = this.scene.player;
@@ -658,12 +664,22 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setActive(false);
     this.setVisible(false);
-    this.shadow.setVisible(false);
-    this.healthBarFill.setVisible(false);
-    this.healthBarBg.setVisible(false);
 
-    if (this.eliteAura) {
-      this.eliteAura.setVisible(false);
+    // Destroy shadow instead of just hiding
+    if (this.shadow && this.shadow.destroy) {
+      this.shadow.destroy();
+    }
+
+    if (this.healthBarFill && this.healthBarFill.destroy) {
+      this.healthBarFill.destroy();
+    }
+
+    if (this.healthBarBg && this.healthBarBg.destroy) {
+      this.healthBarBg.destroy();
+    }
+
+    if (this.eliteAura && this.eliteAura.destroy) {
+      this.eliteAura.destroy();
     }
 
     if (this.scene.enemies) {
@@ -704,16 +720,17 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   destroy() {
-    if (this.shadow) {
+    // Safely destroy all UI elements (may already be destroyed in die())
+    if (this.shadow && !this.shadow.isDestroyed) {
       this.shadow.destroy();
     }
-    if (this.healthBarFill) {
+    if (this.healthBarFill && !this.healthBarFill.isDestroyed) {
       this.healthBarFill.destroy();
     }
-    if (this.healthBarBg) {
+    if (this.healthBarBg && !this.healthBarBg.isDestroyed) {
       this.healthBarBg.destroy();
     }
-    if (this.eliteAura) {
+    if (this.eliteAura && !this.eliteAura.isDestroyed) {
       this.eliteAura.destroy();
     }
     super.destroy();
