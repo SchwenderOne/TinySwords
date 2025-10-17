@@ -9,14 +9,15 @@ import InteractiveBuilding from '../entities/InteractiveBuilding.js';
 import AbilitySystem from '../systems/AbilitySystem.js';
 import { UIBars } from '../utils/UIBars.js';
 import { GameBalance } from '../config/GameBalance.js';
+import { WaveCompositions, getWaveComposition, getWaveEnemyList } from '../config/WaveCompositions.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
-    
+
     // Wave system
     this.currentWave = 1;
-    this.maxWaves = 5; // Changed from 10 to 5 for survivors-like gameplay
+    this.maxWaves = 20; // Phase 5: Extended to 20 waves with 12 enemy archetypes
     this.waveInProgress = false;
     this.betweenWaves = false;
     
@@ -357,9 +358,25 @@ export default class GameScene extends Phaser.Scene {
     rock6.setDepth(0);
   }
 
-  spawnEnemy(type, x, y) {
-    const enemy = new Enemy(this, x, y, type, this.collisionMap);
+  spawnEnemy(archetypeName, x, y, waveNumber = null, isElite = false) {
+    // Use current wave if not specified
+    if (waveNumber === null) {
+      waveNumber = this.currentWave;
+    }
+
+    // Create enemy with archetype-based system
+    const enemy = new Enemy(this, x, y, archetypeName, waveNumber, this.collisionMap, isElite);
     this.enemies.add(enemy);
+
+    // Setup collisions with environment
+    if (this.buildingsGroup) {
+      this.physics.add.collider(enemy, this.buildingsGroup);
+    }
+    if (this.treesGroup) {
+      this.physics.add.collider(enemy, this.treesGroup);
+    }
+
+    return enemy;
   }
 
   spawnHealthPotion(x, y) {
@@ -724,36 +741,61 @@ export default class GameScene extends Phaser.Scene {
       this.waveInProgress = false;
       return;
     }
-    
+
     this.waveInProgress = true;
     this.betweenWaves = false;
-    
-    // Calculate enemy count and difficulty based on wave
-    const warriorCount = Math.min(2 + Math.floor(this.currentWave / 2), 6);
-    const archerCount = Math.min(1 + Math.floor(this.currentWave / 3), 4);
-    
+
+    // Get wave composition from config
+    const waveComp = getWaveComposition(this.currentWave);
+    if (!waveComp) {
+      console.error(`No composition for wave ${this.currentWave}`);
+      this.victoryShown = true;
+      this.victory();
+      return;
+    }
+
     // Get castle gate position from config
     const gatePos = GameBalance.waves.castleGatePosition;
     const spawnRadius = GameBalance.waves.spawnRadius;
-    
-    // Spawn warriors in a circle around castle gate
-    for (let i = 0; i < warriorCount; i++) {
-      const angle = (Math.PI * 2 / warriorCount) * i;
-      const x = gatePos.x + Math.cos(angle) * spawnRadius;
-      const y = gatePos.y + Math.sin(angle) * spawnRadius;
-      this.spawnEnemy('warrior', x, y);
+
+    // Get list of enemies to spawn with shuffling
+    const enemyList = getWaveEnemyList(this.currentWave);
+    const totalEnemies = enemyList.length;
+
+    // Determine spawning pulses (spread enemies over multiple pulses)
+    const pulseCount = Math.min(waveComp.spawningPulses || 2, totalEnemies);
+    const enemiesPerPulse = Math.ceil(totalEnemies / pulseCount);
+    let currentIndex = 0;
+
+    // Spawn enemies in pulses
+    for (let pulse = 0; pulse < pulseCount; pulse++) {
+      this.time.delayedCall(pulse * 1500, () => {
+        // Spawn enemies for this pulse
+        for (let i = 0; i < enemiesPerPulse && currentIndex < totalEnemies; i++) {
+          const enemyData = enemyList[currentIndex];
+
+          // Random spawn position around gate
+          const angle = Math.random() * Math.PI * 2;
+          const radius = spawnRadius + Math.random() * 50;
+          const x = gatePos.x + Math.cos(angle) * radius;
+          const y = gatePos.y + Math.sin(angle) * radius;
+
+          // Determine if this enemy should be elite
+          let isElite = enemyData.isMini; // Mini-bosses are always elite
+          if (!isElite && this.currentWave >= GameBalance.waveScaling.eliteStartWave) {
+            isElite = Math.random() < GameBalance.waveScaling.eliteSpawnChance;
+          }
+
+          // Spawn the enemy
+          this.spawnEnemy(enemyData.archetype, x, y, this.currentWave, isElite);
+          currentIndex++;
+        }
+      });
     }
-    
-    // Spawn archers in outer ring (slightly further back)
-    for (let i = 0; i < archerCount; i++) {
-      const angle = (Math.PI * 2 / archerCount) * i + Math.PI / 4; // Offset by 45 degrees
-      const x = gatePos.x + Math.cos(angle) * (spawnRadius + 50);
-      const y = gatePos.y + Math.sin(angle) * (spawnRadius + 50);
-      this.spawnEnemy('archer', x, y);
-    }
-    
-    // Show wave start message
-    this.showWaveMessage(`Wave ${this.currentWave} - Fight!`);
+
+    // Show wave start message with difficulty
+    const difficultyText = waveComp.difficulty || 'Normal';
+    this.showWaveMessage(`Wave ${this.currentWave}/${this.maxWaves} - ${difficultyText}`);
   }
 
   showWaveMessage(message) {
