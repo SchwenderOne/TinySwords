@@ -78,11 +78,11 @@ export const GameBalance = {
   },
   
   // ============================================================
-  // BUILDINGS (for future phases)
+  // BUILDINGS
   // ============================================================
   buildings: {
     interactionRadius: 100, // Distance to show "Press E" prompt
-    spawnCooldown: 30000 // 30 seconds in milliseconds
+    spawnCooldown: 20000 // 20 seconds in milliseconds
   },
   
   // ============================================================

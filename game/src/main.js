@@ -13,7 +13,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 }, // Top-down game, no gravity
-      debug: false // Set to true to see collision boxes
+      debug: true // Set to true to see collision boxes
     }
   },
   scene: [BootScene, GameScene],

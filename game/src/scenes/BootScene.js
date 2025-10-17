@@ -104,6 +104,38 @@ export default class BootScene extends Phaser.Scene {
       frameHeight: 192
     });
     
+    // Load Blue Warrior sprites (Ally)
+    this.load.spritesheet('blue-warrior-idle', '/assets/blue-warrior/Warrior_Idle.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    this.load.spritesheet('blue-warrior-run', '/assets/blue-warrior/Warrior_Run.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    this.load.spritesheet('blue-warrior-attack1', '/assets/blue-warrior/Warrior_Attack1.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    // Load Blue Monk sprites (Ally)
+    this.load.spritesheet('blue-monk-idle', '/assets/blue-monk/Idle.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    this.load.spritesheet('blue-monk-run', '/assets/blue-monk/Run.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
+    this.load.spritesheet('blue-monk-attack', '/assets/blue-monk/Heal.png', {
+      frameWidth: 192,
+      frameHeight: 192
+    });
+    
     // Load Red Warrior sprites (Enemy)
     this.load.spritesheet('red-warrior-idle', '/assets/red-warrior/Warrior_Idle.png', {
       frameWidth: 192,

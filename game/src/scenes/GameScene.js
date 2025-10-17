@@ -3,6 +3,9 @@ import CollisionMap from '../utils/CollisionMap.js';
 import Player from '../entities/Player.js';
 import Enemy from '../entities/Enemy.js';
 import HealthPotion from '../entities/HealthPotion.js';
+import AllyWarrior from '../entities/AllyWarrior.js';
+import AllyMonk from '../entities/AllyMonk.js';
+import InteractiveBuilding from '../entities/InteractiveBuilding.js';
 import { UIBars } from '../utils/UIBars.js';
 import { GameBalance } from '../config/GameBalance.js';
 
@@ -15,6 +18,9 @@ export default class GameScene extends Phaser.Scene {
     this.maxWaves = 5; // Changed from 10 to 5 for survivors-like gameplay
     this.waveInProgress = false;
     this.betweenWaves = false;
+    
+    // Interactive buildings
+    this.interactiveBuildings = [];
   }
 
   create() {
@@ -53,8 +59,14 @@ export default class GameScene extends Phaser.Scene {
     // Create player (warrior only)
     this.player = new Player(this, this.spawnX, this.spawnY, this.collisionMap);
     
+    // Make buildings interactive (now that player exists)
+    this.makeBuildingsInteractive();
+    
     // Create enemies group
     this.enemies = this.physics.add.group();
+    
+    // Create allies group
+    this.allies = this.physics.add.group();
     
     // Create health potions group
     this.healthPotions = [];
@@ -70,6 +82,12 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.treesGroup);
     this.physics.add.collider(this.enemies, this.buildingsGroup);
     this.physics.add.collider(this.enemies, this.treesGroup);
+    
+    // Add collision for allies
+    this.physics.add.collider(this.allies, this.enemies);
+    this.physics.add.collider(this.allies, this.buildingsGroup);
+    this.physics.add.collider(this.allies, this.treesGroup);
+    this.physics.add.collider(this.allies, this.allies); // Allies collide with each other
     
     // Setup camera
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -161,6 +179,41 @@ export default class GameScene extends Phaser.Scene {
     house4.body.setOffset(22, -68); // offsetX=(128-85)/2=22, offsetY=62-130=-68 (flipped)
     this.buildingsGroup.add(house4);
     this.buildings.push(house4);
+    
+    // Make buildings interactive (must be done after player is created)
+    // This is called from create() after player exists
+  }
+  
+  makeBuildingsInteractive() {
+    // Towers spawn monks
+    const tower1 = this.buildings.find(b => b.x === 1850 && b.y === 2150);
+    const tower2 = this.buildings.find(b => b.x === 2750 && b.y === 2150);
+    
+    if (tower1) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, tower1, 'tower', this.player));
+    }
+    if (tower2) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, tower2, 'tower', this.player));
+    }
+    
+    // Houses spawn warriors
+    const house1 = this.buildings.find(b => b.x === 1750 && b.y === 2450);
+    const house2 = this.buildings.find(b => b.x === 2850 && b.y === 2450);
+    const house3 = this.buildings.find(b => b.x === 2100 && b.y === 1950);
+    const house4 = this.buildings.find(b => b.x === 2500 && b.y === 2300);
+    
+    if (house1) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, house1, 'house', this.player));
+    }
+    if (house2) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, house2, 'house', this.player));
+    }
+    if (house3) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, house3, 'house', this.player));
+    }
+    if (house4) {
+      this.interactiveBuildings.push(new InteractiveBuilding(this, house4, 'house', this.player));
+    }
   }
 
   createDecorations() {
@@ -304,11 +357,42 @@ export default class GameScene extends Phaser.Scene {
     const potion = new HealthPotion(this, x, y);
     this.healthPotions.push(potion);
   }
+  
+  spawnAlly(type, x = null, y = null) {
+    // If no coordinates provided, spawn near player
+    if (x === null || y === null) {
+      const offsetX = Phaser.Math.Between(-100, 100);
+      const offsetY = Phaser.Math.Between(-100, 100);
+      x = this.player.x + offsetX;
+      y = this.player.y + offsetY;
+    }
+    
+    let ally;
+    if (type === 'warrior') {
+      ally = new AllyWarrior(this, x, y, this.player);
+    } else if (type === 'monk') {
+      ally = new AllyMonk(this, x, y, this.player);
+    }
+    
+    if (ally) {
+      this.allies.add(ally);
+    }
+  }
+  
+  handleBuildingInteraction() {
+    // Try to interact with each building
+    for (const building of this.interactiveBuildings) {
+      if (building.interact()) {
+        // Successfully interacted, break
+        break;
+      }
+    }
+  }
 
   createUI() {
     // Controls text
     const controlsText = this.add.text(10, 10, 
-      'Controls:\nWASD - Move\nSPACE - Attack\nSHIFT - Guard', 
+      'Controls:\nWASD - Move\nSPACE - Attack\nSHIFT - Guard\nE - Interact with Buildings', 
       {
         font: '14px Arial',
         fill: '#ffffff',
@@ -318,6 +402,11 @@ export default class GameScene extends Phaser.Scene {
     );
     controlsText.setScrollFactor(0);
     controlsText.setDepth(100);
+    
+    // Add E key interaction handler
+    this.input.keyboard.on('keydown-E', () => {
+      this.handleBuildingInteraction();
+    });
     
     // Player health text
     this.healthText = this.add.text(10, 140, '', {
@@ -447,6 +536,18 @@ export default class GameScene extends Phaser.Scene {
         enemy.update(time, delta, this.player);
       }
     });
+    
+    // Update allies (they follow player and assist in combat)
+    this.allies.getChildren().forEach(ally => {
+      if (ally.active) {
+        ally.update(time, delta);
+      }
+    });
+    
+    // Update interactive buildings (proximity checks, cooldowns)
+    this.interactiveBuildings.forEach(building => {
+      building.update(time, delta);
+    });
 
     // Dynamic depth sorting for all characters and environment
     // Characters get +1 depth boost to always render in front of buildings at same Y position
@@ -464,6 +565,14 @@ export default class GameScene extends Phaser.Scene {
         if (enemy.shadow) enemy.shadow.setDepth(0);
         if (enemy.healthBarBg) enemy.healthBarBg.setDepth(enemy.y + 2);
         if (enemy.healthBarFill) enemy.healthBarFill.setDepth(enemy.y + 3);
+      }
+    });
+    
+    // Set ally depths based on Y position (same as enemies)
+    this.allies.getChildren().forEach(ally => {
+      if (ally.active) {
+        ally.setDepth(ally.y + 1);
+        if (ally.shadow) ally.shadow.setDepth(0);
       }
     });
 
@@ -484,7 +593,7 @@ export default class GameScene extends Phaser.Scene {
     // Update health potions
     this.healthPotions = this.healthPotions.filter(potion => {
       if (potion.active) {
-        potion.update(activeChar);
+        potion.update(this.player);
         return true;
       }
       return false;
