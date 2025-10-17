@@ -315,7 +315,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const healAmount = 2; // HP per frame
 
     if (this.scene.enemies) {
-      this.scene.enemies.children.forEach(enemy => {
+      this.scene.enemies.getChildren().forEach(enemy => {
         if (enemy === this || !enemy.active) return;
 
         const distance = Phaser.Math.Distance.Between(this.x, this.y, enemy.x, enemy.y);
@@ -331,7 +331,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const spawnCooldown = 6000; // 6 seconds
     const maxSpawns = 3;
 
-    if (this.specialCooldown <= 0 && this.scene.enemies.children.size - this.spawnedAllies.length < maxSpawns) {
+    if (this.specialCooldown <= 0 && this.scene.enemies.getChildren().length - this.spawnedAllies.length < maxSpawns) {
       this.spawnMinion();
       this.specialCooldown = spawnCooldown;
     }

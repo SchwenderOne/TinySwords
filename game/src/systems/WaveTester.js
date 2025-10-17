@@ -12,6 +12,8 @@ export class WaveTester {
     this.testSpeed = 1.0; // 1.0 = normal speed
     this.autoProgress = false;
     this.waveDelayMs = 0; // Delay before auto-progressing to next wave
+    this.killInterval = null; // Continuous kill loop
+    this.progressInterval = null; // Wave auto-progression loop
 
     this.setupKeyboardControls();
     this.createTestUI();
@@ -49,14 +51,17 @@ export class WaveTester {
 
     if (this.isTestMode) {
       console.log('🧪 WAVE TEST MODE ENABLED');
-      console.log('Killing current wave enemies and auto-progressing...');
-      this.testModeText.setText('TEST MODE: ON');
+      console.log('Continuously killing enemies as they spawn...');
+      this.testModeText.setText('TEST MODE: ON - Auto-killing enemies');
       this.testModeText.setColor('#00ff00');
 
-      // Kill all current enemies immediately to start fresh
+      // Start continuous killing loop
+      this.startContinuousKill();
+
+      // Kill initial enemies
       this.killAllEnemies();
 
-      // Then start auto-progression
+      // Start auto-progression
       this.scene.time.delayedCall(100, () => {
         this.startTestMode();
       });
@@ -65,14 +70,49 @@ export class WaveTester {
       this.testModeText.setText('TEST MODE: OFF');
       this.testModeText.setColor('#ff0000');
       this.autoProgress = false;
+
+      // Stop continuous killing
+      if (this.killInterval) {
+        clearInterval(this.killInterval);
+        this.killInterval = null;
+      }
+
+      // Stop progression checking
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+        this.progressInterval = null;
+      }
     }
+  }
+
+  startContinuousKill() {
+    // Continuously kill enemies spawning during test mode (every 20ms - very aggressive)
+    this.killInterval = setInterval(() => {
+      if (!this.isTestMode) {
+        clearInterval(this.killInterval);
+        this.killInterval = null;
+        return;
+      }
+
+      // Kill any alive enemies immediately
+      const aliveEnemies = this.scene.enemies.getChildren().filter(e => e.active);
+      if (aliveEnemies.length > 0) {
+        aliveEnemies.forEach(enemy => {
+          if (enemy && enemy.active) {
+            enemy.health = 0;
+            enemy.die();
+          }
+        });
+      }
+    }, 20); // Check every 20ms for new enemies (50x per second)
   }
 
   startTestMode() {
     // Monitor enemy count and auto-progress when empty
-    const checkEnemies = setInterval(() => {
+    this.progressInterval = setInterval(() => {
       if (!this.isTestMode) {
-        clearInterval(checkEnemies);
+        clearInterval(this.progressInterval);
+        this.progressInterval = null;
         return;
       }
 
@@ -92,7 +132,7 @@ export class WaveTester {
           } else if (this.isTestMode && this.scene.currentWave >= this.scene.maxWaves) {
             console.log('🎉 ALL 20 WAVES COMPLETED!');
             this.isTestMode = false;
-            this.testModeText.setText('TEST MODE: OFF - ✅ ALL WAVES COMPLETE').setFillStyle(0x00ff00);
+            this.testModeText.setText('TEST MODE: OFF - ✅ ALL WAVES COMPLETE').setColor('#00ff00');
           }
         });
       }
