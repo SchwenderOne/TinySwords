@@ -162,9 +162,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   updateEliteAura() {
     if (this.eliteAura && this.active) {
       this.eliteAura.setPosition(this.x, this.y);
-      // Pulsing effect
-      const pulse = Math.sin(this.scene.time.now() * 0.003) * 0.15 + 0.2;
-      this.eliteAura.setAlpha(pulse);
+      // Pulsing effect using elapsed time
+      const pulse = Math.sin(this.scene.time.elapsed * 0.003) * 0.15 + 0.2;
+      this.eliteAura.setAlpha(Math.max(0, pulse));
     }
   }
 

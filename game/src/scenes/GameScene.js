@@ -10,6 +10,7 @@ import AbilitySystem from '../systems/AbilitySystem.js';
 import { UIBars } from '../utils/UIBars.js';
 import { GameBalance } from '../config/GameBalance.js';
 import { WaveCompositions, getWaveComposition, getWaveEnemyList } from '../config/WaveCompositions.js';
+import { WaveTester } from '../systems/WaveTester.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -717,7 +718,10 @@ export default class GameScene extends Phaser.Scene {
     
     // Create pause/debug menu (hidden by default)
     this.createDebugMenu();
-    
+
+    // Initialize wave tester for testing all 20 waves
+    this.waveTester = new WaveTester(this);
+
     this.uiBars.show();
     
     // Wave counter (top center)
@@ -906,6 +910,11 @@ export default class GameScene extends Phaser.Scene {
     this.interactiveBuildings.forEach(building => {
       building.update(time, delta);
     });
+
+    // Update wave tester (debug tool for testing all 20 waves)
+    if (this.waveTester) {
+      this.waveTester.update();
+    }
 
     // Dynamic depth sorting for all characters and environment
     // Characters get +1 depth boost to always render in front of buildings at same Y position
