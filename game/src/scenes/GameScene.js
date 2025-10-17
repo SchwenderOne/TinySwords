@@ -4,6 +4,7 @@ import Player from '../entities/Player.js';
 import Monk from '../entities/Monk.js';
 import Enemy from '../entities/Enemy.js';
 import HealthPotion from '../entities/HealthPotion.js';
+import { UIBars } from '../utils/UIBars.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -281,46 +282,9 @@ export default class GameScene extends Phaser.Scene {
     this.characterText.setScrollFactor(0);
     this.characterText.setDepth(100);
     
-    // Character Health Bar and XP Bar (top left) - using graphics
-    const barX = 6;
-    const barY = 6;
-    const barWidth = 200;
-    const barHeight = 12;
-    const barSpacing = 16;
-    
-    // Create graphics objects for bars
-    this.healthBarGraphics = this.add.graphics();
-    this.healthBarGraphics.setScrollFactor(0);
-    this.healthBarGraphics.setDepth(10000);
-    
-    this.xpBarGraphics = this.add.graphics();
-    this.xpBarGraphics.setScrollFactor(0);
-    this.xpBarGraphics.setDepth(10000);
-    
-    // Store bar properties for update
-    this.barConfig = { x: barX, y: barY, width: barWidth, height: barHeight, spacing: barSpacing };
-    
-    // Health text overlay
-    this.charHealthText = this.add.text(barX + barWidth + 8, barY + 2, '', {
-      font: 'bold 12px Arial',
-      fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
-    });
-    this.charHealthText.setOrigin(0, 0);
-    this.charHealthText.setScrollFactor(0);
-    this.charHealthText.setDepth(10001);
-    
-    // Level/XP text overlay
-    this.xpTextOverlay = this.add.text(barX + barWidth + 8, barY + barSpacing + 2, '', {
-      font: 'bold 12px Arial',
-      fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
-    });
-    this.xpTextOverlay.setOrigin(0, 0);
-    this.xpTextOverlay.setScrollFactor(0);
-    this.xpTextOverlay.setDepth(10001);
+    // Initialize DOM-based UI bars
+    this.uiBars = new UIBars();
+    this.uiBars.show();
     
     // Wave counter (top center)
     const width = this.cameras.main.width;
@@ -543,29 +507,9 @@ export default class GameScene extends Phaser.Scene {
       // Update health display
       this.healthText.setText(`HP: ${Math.max(0, activeChar.health)}/${activeChar.maxHealth}`);
       
-      // Update character health bar (draw graphics)
-      const healthPercent = Math.max(0, Math.min(1, activeChar.health / activeChar.maxHealth));
-      const { x, y, width, height, spacing } = this.barConfig;
-      
-      // Clear and redraw health bar
-      this.healthBarGraphics.clear();
-      this.healthBarGraphics.fillStyle(0x000000, 1); // Black background
-      this.healthBarGraphics.fillRect(x, y, width, height);
-      this.healthBarGraphics.fillStyle(0xff0000, 1); // Red fill
-      this.healthBarGraphics.fillRect(x + 2, y + 2, (width - 4) * healthPercent, height - 4);
-      
-      // Clear and redraw XP bar
-      const xpPercent = Math.max(0, Math.min(1, activeChar.xp / activeChar.xpToNextLevel));
-      this.xpBarGraphics.clear();
-      this.xpBarGraphics.fillStyle(0x000000, 1); // Black background
-      this.xpBarGraphics.fillRect(x, y + spacing, width, height);
-      this.xpBarGraphics.fillStyle(0x0088ff, 1); // Blue fill
-      this.xpBarGraphics.fillRect(x + 2, y + spacing + 2, (width - 4) * xpPercent, height - 4);
-      
-      // Update text
-      this.charHealthText.setText(`${Math.max(0, Math.round(activeChar.health))}/${activeChar.maxHealth} HP`);
-      const levelDisplay = activeChar.level >= 10 ? 'MAX' : activeChar.level;
-      this.xpTextOverlay.setText(`LVL ${levelDisplay}`);
+      // Update DOM-based health and XP bars
+      this.uiBars.updateHealth(activeChar.health, activeChar.maxHealth);
+      this.uiBars.updateXP(activeChar.xp, activeChar.xpToNextLevel, activeChar.level);
       
       // Update character indicator
       const charName = this.currentCharacter === 'warrior' ? 'Warrior' : 'Monk';
